@@ -1,0 +1,2751 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MEP Planer">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%23c8102e'/%3E%3Ctext x='90' y='108' font-family='Arial,sans-serif' font-size='56' font-weight='700' fill='%23fff' text-anchor='middle'%3EMEP%3C/text%3E%3C/svg%3E">
+<title>Einsatzplaner (MEP)</title>
+<style>
+:root{
+  --bg:#f6f4ef;--fg:#1d2330;--card:#fff;--mut:#6b7280;--pri:#c8102e;
+  --ok:#1f8a4c;--okbg:#e6f6ec;--bad:#fde4e1;--badfg:#9b1c1c;
+  --warn:#fff1cf;--warnfg:#8a5a00;--ln:#e3dfd6;--blue:#2563eb;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme=light]){
+    --bg:#14171d;--fg:#eef0f4;--card:#1e232c;--mut:#9aa3b2;--ln:#2e3542;
+    --pri:#ff5a72;--ok:#2eb868;--okbg:#173625;--bad:#4a2224;--badfg:#ffb4b4;
+    --warn:#4a3a17;--warnfg:#ffd980;
+  }
+}
+*{box-sizing:border-box}
+html,body{height:auto}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.38 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:92px;-webkit-tap-highlight-color:transparent}
+main{padding:12px 14px;max-width:1020px;margin:auto}
+h2{margin:.15em 0 .45em;font-size:22px}
+h3{margin:.1em 0 .55em;font-size:19px}
+small{color:var(--mut);font-size:12px}
+.btn{display:block;width:100%;padding:13px 14px;margin:6px 0;border:0;border-radius:13px;background:var(--pri);color:#fff;font-size:16px;font-weight:600;cursor:pointer;text-align:center}
+.btn.sec{background:var(--card);color:var(--fg);border:2px solid var(--ln)}
+.btn.danger{background:transparent;color:var(--pri);border:2px solid var(--pri)}
+.btn:active,.sm:active,.chip:active{transform:scale(.985)}
+.sm{padding:8px 12px;border-radius:10px;border:2px solid var(--ln);background:var(--card);color:var(--fg);font-size:14px;font-weight:600;cursor:pointer}
+.sm.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:12px;margin:8px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.row>.btn{flex:1;min-width:130px;margin:0}
+input,select{font:inherit;padding:10px;border:2px solid var(--ln);border-radius:10px;background:var(--card);color:var(--fg);max-width:100%}
+label{display:block;margin:8px 0;font-size:14px;color:var(--mut)}
+label input,label select{display:block;width:100%;margin-top:3px;color:var(--fg)}
+label.ck{display:flex;gap:10px;align-items:center;color:var(--fg);font-size:15px;cursor:pointer}
+label.ck input{width:22px;height:22px;margin:0;flex:0 0 auto}
+.l{font-weight:700;margin:12px 0 5px;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:9px 13px;border-radius:11px;border:2px solid var(--ln);background:var(--card);color:var(--fg);font-size:15px;cursor:pointer}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--ln);border-radius:12px;background:var(--card)}
+table.ui{border-collapse:collapse;width:100%;min-width:740px;font-size:13.5px}
+table.ui th,table.ui td{border:1px solid var(--ln);padding:6px 4px;text-align:center;vertical-align:middle}
+table.ui th{background:rgba(128,128,128,.07);font-weight:700}
+td.nm{text-align:left;font-weight:700;min-width:76px;padding-left:8px!important}
+td.cl{background:var(--ln);color:var(--mut)}
+td.ab{background:var(--warn);color:var(--warnfg);font-weight:700}
+td.fr{color:var(--mut);font-size:19px}
+td.bad{background:var(--bad);color:var(--badfg)}
+td.warn{background:var(--warn);color:var(--warnfg)}
+td.cs{cursor:pointer}
+.chg{outline:3px solid var(--blue);outline-offset:-3px}
+.wn{padding:9px 11px;border-radius:10px;margin:5px 0;font-size:14px}
+.wn.bad{background:var(--bad);color:var(--badfg)}
+.wn.warn{background:var(--warn);color:var(--warnfg)}
+.wn.ok{background:var(--ok);color:#fff;font-weight:600}
+.rule{border:1px solid var(--ln);border-radius:12px;padding:10px;margin:6px 0}
+.rule.off{opacity:.52}
+.pill{display:inline-block;padding:2px 7px;border-radius:999px;font-size:11.5px;font-weight:700;background:var(--ln);color:var(--fg);margin-left:4px}
+.pill.ok{background:var(--okbg);color:var(--ok)}
+.pill.bad{background:var(--bad);color:var(--badfg)}
+.pill.warn{background:var(--warn);color:var(--warnfg)}
+
+/* Coverage Bar */
+.cov-card{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px 12px;margin:10px 0}
+.cov-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.cov-leg{display:flex;gap:10px;font-size:12px;color:var(--mut);align-items:center}
+.cov-dot{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:3px;vertical-align:middle}
+.cov-row{display:flex;align-items:center;gap:8px;margin:5px 0;cursor:pointer;padding:3px 4px;border-radius:8px}
+.cov-row:hover{background:rgba(128,128,128,.07)}
+.cov-day{width:64px;flex:0 0 64px;font-size:12.5px;font-weight:700;line-height:1.15}
+.cov-bars{flex:1;display:flex;gap:2px;min-height:24px}
+.cov-slot{flex:1;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;line-height:1.05;padding:2px 1px;min-width:18px}
+.cov-0{background:#ef4444;color:#fff}
+.cov-1{background:#f59e0b;color:#1d2330}
+.cov-2{background:#22c55e;color:#fff}
+.cov-3{background:#0284c7;color:#fff}
+.cov-4{background:#7c3aed;color:#fff}
+.pill.info{background:rgba(37,99,235,.14);color:var(--blue)}
+td.pbcell{background:rgba(37,99,235,.10);color:var(--blue);font-size:12px;font-weight:700}
+.wt-btn{margin-top:3px;padding:2px 6px;border-radius:6px;border:1px solid var(--ln);background:var(--card);color:var(--mut);font-size:10.5px;font-weight:600;cursor:pointer;display:inline-block}
+.wt-btn.on{background:#ea580c;color:#fff;border-color:#ea580c}
+.acc-tbl{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.acc-tbl th,.acc-tbl td{border-bottom:1px solid var(--ln);padding:6px 4px;text-align:right}
+.acc-tbl th:first-child,.acc-tbl td:first-child{text-align:left}
+.acc-tbl tr:last-child td{border-bottom:0}
+.locked-area{opacity:.48;pointer-events:none;user-select:none}
+.sm.lock-on{background:#1f8a4c;color:#fff;border-color:#1f8a4c}
+.ripple-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 9px;border-radius:9px;margin:4px 0;font-size:13.5px}
+.ripple-item.bad{background:var(--bad);color:var(--badfg)}
+.ripple-item.warn{background:var(--warn);color:var(--warnfg)}
+.ripple-item.info{background:rgba(37,99,235,.10);color:var(--fg)}
+.guide-step{padding:8px 10px;border-left:3px solid var(--pri);background:var(--card);border-radius:0 10px 10px 0;margin:6px 0;font-size:14px}
+td.emp-link{cursor:pointer}
+td.emp-link:hover{background:rgba(128,128,128,.08)}
+.nm-edit{font-size:11px;opacity:.55;margin-left:3px}
+.bp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--card);margin:5px 0;font-size:13.5px}
+.bp-row.bp-skip{opacity:.48;text-decoration:line-through}
+.pill.join{background:rgba(13,148,136,.16);color:#0f766e}
+.pill.leave{background:rgba(147,51,234,.16);color:#7e22ce}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme=light]) .pill.join{background:rgba(45,212,191,.18);color:#5eead4}
+  :root:not([data-theme=light]) .pill.leave{background:rgba(192,132,252,.18);color:#d8b4fe}
+}
+tr.emp-join td.nm{border-left:4px solid #0d9488!important;background:rgba(13,148,136,.11)}
+tr.emp-leave td.nm{border-left:4px solid #9333ea!important;background:rgba(147,51,234,.11)}
+tr.emp-both td.nm{border-left:4px solid #0d9488!important;box-shadow:inset 0 -3px 0 #9333ea;background:linear-gradient(90deg,rgba(13,148,136,.11),rgba(147,51,234,.11))}
+tr.emp-inactive{opacity:.58}
+td.emp-join-cell{background:rgba(13,148,136,.08);color:#0f766e;font-size:11.5px;font-weight:600}
+td.emp-leave-cell{background:rgba(147,51,234,.08);color:#7e22ce;font-size:11.5px;font-weight:600}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme=light]) td.emp-join-cell{color:#5eead4}
+  :root:not([data-theme=light]) td.emp-leave-cell{color:#d8b4fe}
+}
+td.day-start{box-shadow:inset 0 3px 0 #0d9488}
+td.day-end{box-shadow:inset 0 -3px 0 #9333ea}
+.emp-tag{display:inline-block;padding:1px 5px;border-radius:5px;font-size:10.5px;font-weight:700;margin-top:2px;margin-right:3px}
+.emp-tag.join{background:rgba(13,148,136,.18);color:#0f766e}
+.emp-tag.leave{background:rgba(147,51,234,.18);color:#7e22ce}
+@media(prefers-color-scheme:dark){
+  :root:not([data-theme=light]) .emp-tag.join{color:#5eead4}
+  :root:not([data-theme=light]) .emp-tag.leave{color:#d8b4fe}
+}
+.cov-slot span{font-size:9px;font-weight:500;opacity:.9}
+
+/* Bottom Navigation */
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav button{flex:1;border:0;background:none;color:var(--mut);padding:9px 2px;font-size:12.5px;cursor:pointer}
+nav button.on{color:var(--pri);font-weight:700}
+nav b{display:block;font-size:21px;line-height:1.15}
+
+/* Modal & Toast */
+#m{display:none;position:fixed;inset:0;background:rgba(0,0,0,.52);z-index:20;overflow:auto;padding:12px;-webkit-overflow-scrolling:touch}
+#m.on{display:block}
+.box{background:var(--bg);border-radius:16px;padding:16px;max-width:540px;margin:16px auto;box-shadow:0 12px 36px rgba(0,0,0,.25)}
+textarea{width:100%;height:96px;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;padding:8px;border:2px solid var(--ln);border-radius:10px;background:var(--card);color:var(--fg)}
+#toast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(20px);background:#1d2330;color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:40;max-width:92vw;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#pr{display:none}
+
+/* =====================================================================
+   EXACT 1:1 DIN-A4 LANDSCAPE MEP PRINT LAYOUT
+   A4 Landscape in pt: 841 x 595 pt = 296.7 x 209.9 mm
+   Margins: 6mm top, 11mm right, 5.5mm bottom, 11mm left
+   -> Printable area: 274.7mm wide x 198.4mm high
+   Sheet width: 272.0mm (centered, 2.7mm horizontal safety buffer -> no right clipping)
+   Worst-case height (incl. 96dpi border rounding): ~187.5mm -> 10.9mm vertical buffer
+   ===================================================================== */
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box}
+  :root,html,body{margin:0!important;padding:0!important;background:#fff!important;color:#000!important;height:auto!important}
+  main,nav,#m,#toast{display:none!important}
+  #pr{display:block!important;margin:0;padding:0}
+  @page{size:A4 landscape;margin:6mm 11mm 5.5mm 11mm}
+
+  .pg{
+    page-break-after:always;
+    break-after:page;
+    width:272mm;
+    margin:0 auto;
+    font-family:Arial,Helvetica,sans-serif;
+    font-size:7.3pt;
+    color:#000;
+    background:#fff;
+  }
+  .pg:last-child{page-break-after:auto;break-after:auto}
+
+  /* 1. Title Band (height 6.0mm, Filiale box 18.5mm aligns exact with Summe/Monat 253.5..272mm) */
+  .band{
+    position:relative;
+    width:272mm;
+    height:6.0mm;
+    border:.25mm solid #000;
+    border-right:0;
+    display:flex;
+    align-items:center;
+    padding-left:1.5mm;
+  }
+  .band .bt{
+    font-size:10.3pt;
+    font-weight:700;
+    line-height:1;
+    letter-spacing:.04mm;
+  }
+  .band .fl{
+    position:absolute;
+    right:20mm;
+    font-size:9.3pt;
+    font-weight:700;
+    line-height:1;
+  }
+  .band .fb{
+    position:absolute;
+    right:0;
+    top:-.25mm;
+    bottom:-.25mm;
+    width:18.5mm;
+    border:.52mm solid #000;
+    background:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:9.8pt;
+    font-weight:700;
+    line-height:1;
+  }
+
+  /* 2. Header Line (height 14.5mm -> ~8mm whitespace above table, aligned to table columns) */
+  .hl{
+    position:relative;
+    width:272mm;
+    height:14.5mm;
+  }
+  .hl>*{
+    position:absolute;
+    top:2.7mm;
+    font-size:7.8pt;
+    line-height:1.1;
+    white-space:nowrap;
+  }
+  .hl u{
+    text-decoration:none;
+    border-bottom:.25mm solid #000;
+    top:1.4mm;
+    height:4.5mm;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    padding-bottom:.4mm;
+    font-size:9.2pt;
+    font-weight:400;
+  }
+  .hl .aufb{
+    font-size:7.2pt;
+    top:2.8mm;
+  }
+
+  /* 3. Main MEP Table (width exact 272mm, 39 rows x 3.34mm content + borders <= 144.1mm) */
+  .mt{
+    table-layout:fixed;
+    width:272mm;
+    border-collapse:collapse;
+    border-spacing:0;
+  }
+  .mt tr{height:3.34mm}
+  .mt th,.mt td{
+    border:.12mm solid #262626;
+    padding:0;
+    margin:0;
+    font-size:7.2pt;
+    font-weight:400;
+    line-height:1;
+    overflow:hidden;
+    white-space:nowrap;
+    vertical-align:middle;
+    text-align:center;
+  }
+  /* Inner flex box guarantees exact vertical centering on iOS Safari & Android Chrome */
+  .vc{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+    height:3.34mm;
+    line-height:1;
+    padding-top:.2mm;
+  }
+  .vc.vl{
+    justify-content:flex-start;
+    padding-left:.85mm;
+    padding-top:.12mm;
+  }
+  .mt th{
+    background:#d9d9d9;
+    font-weight:700;
+    font-size:7.0pt;
+    line-height:1.12;
+  }
+  .mt th.l{text-align:left}
+  .mt th.w{background:#fff;font-weight:400;font-size:7.0pt}
+  .mt th.sb{border:.36mm solid #000;background:#d9d9d9;font-weight:700;line-height:1.15}
+  .mt th.sb-l{border-right:.12mm solid #262626}
+  .mt th.sb-r{border-left:.12mm solid #262626}
+  .mt th.n,.mt td.n{border:0!important;background:transparent!important}
+
+  .mt td.nmc{
+    vertical-align:top;
+    text-align:left;
+    white-space:normal;
+    font-size:8.2pt;
+    font-weight:700;
+    line-height:1.16;
+    padding:.8mm .9mm .3mm .9mm;
+  }
+  .mt td.m{
+    vertical-align:middle;
+    text-align:center;
+    font-size:7.6pt;
+    line-height:1.1;
+    padding-top:.18mm;
+  }
+  .mt td.bx{
+    border:.36mm solid #000!important;
+    vertical-align:middle;
+    text-align:center;
+    font-size:7.6pt;
+    line-height:1;
+    padding-top:.22mm;
+  }
+  .mt td.bx-l{border-right:.12mm solid #262626!important}
+  .mt td.bx-r{border-left:.12mm solid #262626!important}
+
+  /* Structural dividers matching original:
+     - Thick horizontal borders between employee blocks (0.68mm solid #000)
+     - Thin inner horizontal borders (0.12mm) & thin vertical borders throughout */
+  .mt th:first-child,.mt td.nmc{border-left:.24mm solid #000}
+  .mt th.day-last,.mt td.day-last{border-right:.24mm solid #000}
+  .mt tr:first-child>th:not(.n):not(.sb){border-top:.68mm solid #000}
+  .mt tr.bs>td:not(.n){border-top:.68mm solid #000}
+  .mt tr.be>td:not(.n),.mt td.be-bot{border-bottom:.68mm solid #000}
+
+  /* 4. Footer (height 23.0mm, exact column alignments, stays guaranteed on Page 1) */
+  .ft{
+    position:relative;
+    width:272mm;
+    height:23.0mm;
+    font-size:7.2pt;
+    line-height:1.15;
+  }
+  .ft>*{
+    position:absolute;
+    white-space:nowrap;
+  }
+  /* Colon centered exact on Plan/Woche | Wochentag border (68.0mm) */
+  .ft-pgrid{
+    left:34.5mm;
+    top:4.0mm;
+    display:grid;
+    grid-template-columns:32.3mm 2.4mm auto;
+    row-gap:1.3mm;
+    align-items:baseline;
+  }
+  .ft-pgrid .pr-l{text-align:right}
+  .ft-pgrid .pr-c{text-align:center}
+  .ft-pgrid .pr-r{text-align:left}
+  .ft-stand{
+    left:230.0mm;
+    top:19.8mm;
+    font-size:6.7pt;
+  }
+}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div id="pr"></div>
+<div id="m" onclick="if(event.target==this)hide()"></div>
+<div id="toast"></div>
+<nav>
+  <button data-v="plan"><b>📅</b>Plan</button>
+  <button data-v="team"><b>👥</b>Team</button>
+  <button data-v="abs"><b>🏖️</b>Abwesenheit</button>
+  <button data-v="set"><b>⚙️</b>Einstellungen</button>
+</nav>
+
+<script>
+const DN=['Mo','Di','Mi','Do','Fr','Sa','So'];
+const DNF=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const MNm=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const FN=['TL','VZ STV','VZ','TZ','GFB'];
+const AB={Urlaub:'U',Krank:'AU',Schule:'Sch',Freizeit:'FZ'};
+const AB_OPT=[
+  ['Urlaub','Urlaub'],
+  ['Krank','Krank (AU)'],
+  ['Schule','Schule'],
+  ['Freizeit','Freizeit'],
+  ['Evt. Ausfall','Evt. Ausfall (nur Plan B)'],
+  ['Eintritt','🆕 Fängt an ab (Eintritt)'],
+  ['Austritt','👋 Hört auf am (Austritt)']
+];
+const PR=[
+  ['Ganztags nicht','no',[[0,24]]],
+  ['Nur vormittags','only',[[9,14]]],
+  ['Nur nachmittags','only',[[14,20]]],
+  ['Keine Spätschicht','no',[[18,24]]],
+  ['Keine Frühschicht','no',[[0,11]]],
+  ['Lieber vormittags','like',[[9,14]]],
+  ['Lieber nachmittags','like',[[14,20]]],
+  ['Lieber an diesen Tagen','like',[[0,24]]]
+];
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const P=s=>new Date(s+'T12:00:00');
+const add=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const wdOf=ds=>(P(ds).getDay()+6)%7;
+const dm=ds=>ds.slice(8)+'.'+ds.slice(5,7)+'.';
+const de=ds=>dm(ds)+ds.slice(0,4);
+const DEF_HRS=[[9,20],[9,20],[9,20],[9,20],[9,20],[9,19],[10,18]];
+const f=h=>{const m=Math.round(h*60);return Math.floor(m/60)+':'+String(m%60).padStart(2,'0')};
+const hm=x=>{const neg=x<0;const t=Math.round(Math.abs(x)*60);return(neg?'-':'')+Math.floor(t/60)+':'+String(t%60).padStart(2,'0')};
+const fmtDec=x=>{const v=Math.round(x*100)/100;return(Math.abs(v%1)<1e-6?v.toFixed(1):(+v.toFixed(2)).toString()).replace('.',',')};
+const fmtDur=(x,unit)=>{if(S&&S.timeFmt==='dec')return fmtDec(x)+(unit?' h':'');return hm(x)};
+const fmtSigned=x=>{const m=Math.round(x*60);if(m===0)return(S&&S.timeFmt==='dec')?'0,0 h':'±0:00';const sg=m>0?'+':'-';return sg+fmtDur(Math.abs(x),true)};
+function parseDur(v){
+  const s=String(v==null?'':v).trim().replace(',','.');
+  if(!s)return 0;
+  if(s.includes(':')){
+    const parts=s.split(':');
+    const hh=parseInt(parts[0],10)||0;
+    const mm=parseInt(parts[1],10)||0;
+    return Math.max(0,hh+Math.min(59,Math.max(0,mm))/60);
+  }
+  const n=parseFloat(s);
+  return isNaN(n)?0:Math.max(0,n);
+}
+const h2t=h=>{if(h>=24)return'23:59';const m=Math.max(0,Math.min(1439,Math.round(h*60)));return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
+const t2h=v=>{if(!v)return 0;const[a,b]=v.split(':').map(Number),h=a+b/60;return h>23.98?24:h};
+const mon=d=>{const x=new Date(d);x.setHours(12,0,0,0);x.setDate(x.getDate()-(x.getDay()+6)%7);return x};
+function kw(d){
+  const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  const n=t.getUTCDay()||7;
+  t.setUTCDate(t.getUTCDate()+4-n);
+  return Math.ceil(((t-Date.UTC(t.getUTCFullYear(),0,1))/864e5+1)/7);
+}
+function easter(y){
+  const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4;
+  const g=Math.floor((b-Math.floor((b+8)/25)+1)/3),h=(19*a+b-d-g+15)%30;
+  const i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7;
+  const m=Math.floor((a+11*h+22*l)/451),n=h+l-7*m+114;
+  return new Date(y,Math.floor(n/31)-1,n%31+1,12);
+}
+const HC={};
+function hol(y){
+  if(HC[y])return HC[y];
+  const E=easter(y),o=n=>iso(add(E,n));
+  return HC[y]={
+    [y+'-01-01']:'Neujahr',
+    [o(-2)]:'Karfreitag',
+    [o(1)]:'Ostermontag',
+    [y+'-05-01']:'Tag der Arbeit',
+    [o(39)]:'Chr. Himmelfahrt',
+    [o(50)]:'Pfingstmontag',
+    [o(60)]:'Fronleichnam',
+    [y+'-10-03']:'Tag d. Dt. Einheit',
+    [y+'-11-01']:'Allerheiligen',
+    [y+'-12-25']:'1. Weihnachtstag',
+    [y+'-12-26']:'2. Weihnachtstag'
+  };
+}
+
+const GFB_MODES={short:'Kurzschichten (2–3×)',full:'Ganzer Tag (1×)',auto:'Flexibel (Mix)'};
+const CASH_LBL={2:'Kassenkraft',1:'Kasse vermeiden',0:'Keine Kassenkraft'};
+const empCash=e=>(e&&e.cash!==undefined&&e.cash!==null&&e.cash!=='')?+e.cash:2;
+const SAT_LEVELS=[
+  [1,'1 · Sehr locker (nur Orientierung)','Sanfter Hinweis im Generator ohne gelbe/rote Warnung in den Zellen – Wochensoll & Wünsche haben Vorrang.'],
+  [2,'2 · Locker (leichte Vorliebe)','Leichter Malus bei Überschreitung (⚠️); gute Stundenverteilung oder Mitarbeiterwünsche können vorgehen.'],
+  [3,'3 · Ausgewogen (Standard)','Stark vermieden; Überschreitung nur wenn nötig, z. B. am 5. Samstag im Monat oder bei Urlaub (⚠️).'],
+  [4,'4 · Streng (nur Notfall / Schlüsselkraft)','Keine freiwillige Verstärkung über dem Limit; nur erlaubt, wenn sonst Öffnung/Schließung oder Laden unbesetzt bliebe (⚠️).'],
+  [5,'5 · Strikt / Hart (absolut blockiert)','Harte Sperre: Niemand wird über sein Samstags-Limit eingeplant – auch nicht am 5. Samstag (⛔).']
+];
+const satLvl=()=>Math.max(1,Math.min(5,Math.round(+(S&&S.satStrict)||3)));
+const SAT_PEN_CORE=[0,10,35,140,500,9999];
+const SAT_PEN_EXTRA=[0,12,40,160,9999,9999];
+function demo(){
+  const r=(days,win,t)=>({days,win,t,from:'',to:'',off:0});
+  return{
+    nid:7,names:'k',store:'4227',pause:60,nF:1,nS:1,nK:2,satMax:2,satStrict:3,satHard:0,cap:603,eve:14,
+    absCredit:1,absDiv:5,creditInMEP:0,
+    timeFmt:'hm',protectNeighbor:1,keepPrevAll:0,
+    wareDays:[1,4],wareOvr:{},wareExtraF:1,
+    gfbMode:'short',gfbFrom:15,gfbSatFrom:11,
+    hrs:[[9,20],[9,20],[9,20],[9,20],[9,20],[9,19],null],
+    ovr:{},abs:[],plan:{},pa:{},locks:{},
+    emps:[
+      {id:1,k:'TL',n:'',f:'TL',h:40,key:1,cash:2,keepPrev:0,rules:[]},
+      {id:2,k:'STV',n:'',f:'VZ STV',h:40,key:1,cash:2,keepPrev:0,rules:[]},
+      {id:3,k:'TZ1',n:'',f:'TZ',h:24,key:0,cash:2,keepPrev:0,rules:[r([0,2],[[9,14]],'only')]},
+      {id:4,k:'TZ2',n:'',f:'TZ',h:20,key:0,cash:2,keepPrev:0,rules:[r([4],[[18,24]],'pref')]},
+      {id:5,k:'GFB1',n:'',f:'GFB',h:10,gfb:1,wage:13.9,gfbMode:'',cash:2,keepPrev:0,rules:[r([0,1,2,3,4],[[9,14]],'no')]},
+      {id:6,k:'GFB2',n:'',f:'GFB',h:10,gfb:1,wage:13.9,gfbMode:'',cash:2,keepPrev:0,rules:[]}
+    ]
+  };
+}
+function normalizeState(s){
+  const d=demo();
+  const out=Object.assign({},d,s||{});
+  if(out.absCredit===undefined)out.absCredit=1;
+  if(out.satStrict===undefined){
+    out.satStrict=out.satHard?5:3;
+  }else{
+    out.satStrict=Math.max(1,Math.min(5,Math.round(+out.satStrict||3)));
+  }
+  out.satHard=out.satStrict>=5?1:0;
+  if(out.absDiv!==5&&out.absDiv!==6)out.absDiv=5;
+  if(out.creditInMEP===undefined)out.creditInMEP=0;
+  if(out.timeFmt!=='hm'&&out.timeFmt!=='dec')out.timeFmt='hm';
+  if(out.protectNeighbor===undefined)out.protectNeighbor=1;
+  if(out.keepPrevAll===undefined)out.keepPrevAll=0;
+  if(!Array.isArray(out.wareDays))out.wareDays=[1,4];
+  if(!out.wareOvr||typeof out.wareOvr!=='object')out.wareOvr={};
+  if(out.wareExtraF===undefined)out.wareExtraF=1;
+  if(!out.gfbMode)out.gfbMode='short';
+  if(out.gfbFrom===undefined)out.gfbFrom=15;
+  if(out.gfbSatFrom===undefined)out.gfbSatFrom=11;
+  if(!out.hrs||out.hrs.length!==7)out.hrs=d.hrs;
+  if(!out.plan)out.plan={};
+  if(!out.abs)out.abs=[];
+  if(!out.ovr)out.ovr={};
+  if(!out.locks||typeof out.locks!=='object')out.locks={};
+  if(!out.emps)out.emps=[];
+  out.emps.forEach(e=>{if(!e.rules)e.rules=[];if(e.gfbMode===undefined)e.gfbMode='';if(e.keepPrev===undefined)e.keepPrev=0;if(e.satMax===undefined)e.satMax='';if(e.cash===undefined||e.cash===null||e.cash==='')e.cash=2;});
+  return out;
+}
+function readEmbeddedSeed(){
+  try{
+    const el=document.getElementById('mep-seed');
+    if(!el||!el.textContent.trim())return null;
+    return normalizeState(JSON.parse(el.textContent));
+  }catch(e){return null;}
+}
+function load(){
+  try{
+    const j=localStorage.getItem('mep1');
+    if(j)return normalizeState(JSON.parse(j));
+  }catch(e){}
+  const seed=readEmbeddedSeed();
+  if(seed){
+    try{localStorage.setItem('mep1',JSON.stringify(seed));}catch(e){}
+    return seed;
+  }
+  return demo();
+}
+
+let S=load(),view='plan',wk=mon(new Date()),cur=null,RD=null,RI=-1,B=0,editHrs=false,BP=null,appSaveInclude=true,hideTempHint=false,absDraft={emp:'',type:'Urlaub',from:'',to:''},toastT=null;
+function isMessengerUri(){
+  const href=String(location.href||'').toLowerCase();
+  const proto=location.protocol;
+  if(proto==='blob:'||proto==='data:')return true;
+  if(proto==='content:'){
+    return /(whatsapp|telegram|signal|threema|viber|line\.|messenger|messaging|sms|mms|gmail|android\.gm|email|mail|outlook|k9|fairmail|bluemail|discord|slack|teams)/.test(href);
+  }
+  return false;
+}
+function isHintHidden(){
+  if(hideTempHint)return true;
+  try{return localStorage.getItem('mep1_hide_hint')==='1';}catch(e){return false;}
+}
+function dismissTempHint(silent){
+  hideTempHint=true;
+  try{localStorage.setItem('mep1_hide_hint','1');}catch(e){}
+  if(!silent)render();
+}
+const sv=()=>{try{localStorage.setItem('mep1',JSON.stringify(S))}catch(e){}};
+const emp=id=>S.emps.find(e=>e.id==id);
+const nm=e=>e?(S.names=='n'&&e.n?e.n:e.k):'?';
+
+function toast(msg){
+  const el=$('#toast');
+  el.textContent=msg;
+  el.classList.add('on');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('on'),2600);
+}
+
+function openH(ds){
+  if(ds in S.ovr)return S.ovr[ds];
+  if(hol(+ds.slice(0,4))[ds])return null;
+  const w=wdOf(ds),h=S.hrs[w];
+  if(!h)return null;
+  if(ds.slice(5)=='12-24'||ds.slice(5)=='12-31')return[h[0],Math.min(h[1],S.eve)];
+  return h;
+}
+function shift(ds,code){
+  const oh=openH(ds);
+  if(!oh||!code)return null;
+  let s,e;
+  if(code[0]=='c'){
+    [s,e]=code.slice(1).split('-').map(Number);
+  }else if(code=='F'){
+    s=oh[0];e=Math.min(oh[0]+9,oh[1]);
+  }else if(code=='S'){
+    e=oh[1];s=Math.max(oh[0],oh[1]-9);
+  }else{
+    s=oh[0];e=oh[1];
+  }
+  const d=e-s;
+  if(d<=0)return null;
+  const p=d>6?S.pause/60:0;
+  return{s,e,p,n:Math.max(0,d-p)};
+}
+const absOf=(id,ds)=>{
+  const a=S.abs.find(a=>a.emp==id&&a.type!=='Evt. Ausfall'&&a.type!=='Eintritt'&&a.type!=='Austritt'&&ds>=a.from&&ds<=a.to);
+  return a?a.type:null;
+};
+const empStart=id=>{
+  const a=S.abs.find(a=>a.emp==id&&a.type==='Eintritt'&&a.from);
+  return a?a.from:null;
+};
+const empEnd=id=>{
+  const a=S.abs.find(a=>a.emp==id&&a.type==='Austritt'&&a.from);
+  return a?a.from:null;
+};
+function outOfEmp(id,ds){
+  const st=empStart(id);
+  if(st&&ds<st)return'vor Eintritt';
+  const en=empEnd(id);
+  if(en&&ds>en)return'Ausgeschieden';
+  return null;
+}
+const isEmployed=(id,ds)=>!outOfEmp(id,ds);
+const unavailOf=(id,ds)=>outOfEmp(id,ds)||absOf(id,ds);
+function empWeekTarget(e,ds){
+  if(!e||!e.h)return 0;
+  const m=mon(P(ds)),div=S.absDiv===6?6:5;
+  let act=0;
+  for(let i=0;i<div;i++){
+    if(isEmployed(e.id,iso(add(m,i))))act++;
+  }
+  if(act===div)return e.h;
+  if(act===0)return 0;
+  return Math.round(e.h*(act/div)*4)/4;
+}
+const maybeOutOf=(id,ds)=>S.abs.some(a=>a.emp==id&&a.type==='Evt. Ausfall'&&ds>=a.from&&ds<=a.to);
+const isPlanBActive=()=>!!(S.pa&&S.pa[iso(wk)]);
+const weekKey=d=>iso(mon(typeof d==='string'?P(d):d));
+const isWeekLocked=d=>!!(S.locks&&S.locks[weekKey(d)]);
+function toggleLock(){
+  const k=iso(wk);
+  S.locks=S.locks||{};
+  if(S.locks[k]){
+    delete S.locks[k];sv();render();
+    toast('🔓 Woche entsperrt');
+  }else{
+    S.locks[k]=1;sv();render();
+    toast('🔒 Woche fixiert (vor Änderungen geschützt)');
+  }
+}
+function jumpWeek(mondayIso){
+  wk=P(mondayIso);
+  view='plan';
+  hide();
+}
+function net(id,ds){
+  if(unavailOf(id,ds))return 0;
+  const c=(S.plan[ds]||{})[id],x=c&&shift(ds,c);
+  return x?x.n:0;
+}
+function isWareDay(ds){
+  if(!openH(ds))return false;
+  if(S.wareOvr&&ds in S.wareOvr)return!!S.wareOvr[ds];
+  return(S.wareDays||[]).includes(wdOf(ds));
+}
+function toggleWareDay(ds){
+  if(!openH(ds))return;
+  if(isWeekLocked(ds)){toast('🔒 Woche ist fixiert – erst oben entsperren');return;}
+  const curW=isWareDay(ds);
+  const defW=(S.wareDays||[]).includes(wdOf(ds));
+  S.wareOvr=S.wareOvr||{};
+  if(!curW===defW)delete S.wareOvr[ds];
+  else S.wareOvr[ds]=!curW;
+  sv();render();
+  toast((!curW?'📦 Warentag aktiviert: ':'Warentag entfernt: ')+DN[wdOf(ds)]+' '+dm(ds));
+}
+function creditOf(e,ds){
+  if(!S.absCredit||!e||e.gfb||!e.h)return 0;
+  if(!isEmployed(e.id,ds))return 0;
+  if(net(e.id,ds)>0)return 0;
+  const div=S.absDiv===6?6:5;
+  const wd=wdOf(ds);
+  if(wd>=div)return 0;
+  if(hol(+ds.slice(0,4))[ds])return e.h/div;
+  const a=absOf(e.id,ds);
+  if(a==='Urlaub'||a==='Krank'||a==='Schule')return e.h/div;
+  return 0;
+}
+function monthStats(e,ym){
+  const y=+ym.slice(0,4),m=+ym.slice(5)-1;
+  const daysInMo=new Date(y,m+1,0).getDate();
+  const div=S.absDiv===6?6:5;
+  const H=hol(y);
+  let worked=0,cred=0,workdays=0,holWorkdays=0,sats=0,activeDays=0;
+  for(let d=1;d<=daysInMo;d++){
+    const ds=ym+'-'+String(d).padStart(2,'0');
+    const wd=wdOf(ds);
+    const empOnDay=isEmployed(e.id,ds);
+    if(empOnDay)activeDays++;
+    const n=net(e.id,ds);
+    worked+=n;
+    if(n>0&&wd===5)sats++;
+    cred+=creditOf(e,ds);
+    if(empOnDay&&wd<div){
+      workdays++;
+      if(H[ds])holWorkdays++;
+    }
+  }
+  const effWorkdays=(S.absCredit&&!e.gfb)?workdays:Math.max(0,workdays-holWorkdays);
+  const rawTarget=(e.h||0)*(effWorkdays/div);
+  const capH=(e.gfb&&e.wage)?(S.cap/e.wage):null;
+  const capped=!!(capH&&rawTarget>capH+.05);
+  const target=capped?capH:rawTarget;
+  const actual=worked+cred;
+  const diff=actual-target;
+  const eur=(e.gfb&&e.wage)?worked*e.wage:null;
+  return{worked,cred,actual,target,rawTarget,diff,sats,capH,capped,eur,workdays:effWorkdays,activeDays};
+}
+const wkH=(id,ds)=>{
+  const m=mon(P(ds));let t=0;
+  for(let i=0;i<7;i++)t+=net(id,iso(add(m,i)));
+  return t;
+};
+const wkCred=(e,ds)=>{
+  const m=mon(P(ds));let t=0;
+  for(let i=0;i<7;i++)t+=creditOf(e,iso(add(m,i)));
+  return t;
+};
+const wkEff=(e,ds)=>wkH(e.id,ds)+wkCred(e,ds);
+const moH=(id,ds,ex)=>{
+  let t=0,ym=ds.slice(0,7);
+  for(const d in S.plan)if(d.slice(0,7)==ym&&d!=ex)t+=net(id,d);
+  return t;
+};
+const satN=(id,ds)=>{
+  let t=0,ym=ds.slice(0,7);
+  for(const d in S.plan)if(d.slice(0,7)==ym&&d!=ds&&wdOf(d)==5&&(S.plan[d]||{})[id]&&!unavailOf(id,d))t++;
+  return t;
+};
+function earlyLateCount(id,ym){
+  let ef=0,es=0;
+  for(const d in S.plan){
+    if(d.slice(0,7)!=ym||unavailOf(id,d))continue;
+    const c=(S.plan[d]||{})[id],oh=openH(d);
+    if(!c||!oh)continue;
+    const s=shift(d,c);if(!s)continue;
+    if(s.s<=oh[0]+.25&&s.e<oh[1]-.25)ef++;
+    else if(s.e>=oh[1]-.25&&s.s>oh[0]+.25)es++;
+  }
+  return{ef,es};
+}
+
+/* Staggered pause placement for a day to prevent store & register being left empty */
+function daySchedule(ds,extra){
+  const oh=openH(ds);
+  if(!oh)return{oh:null,items:[],slots:[],gaps:[],cashGaps:[],cashAvoid:[]};
+  const pl=Object.assign({},S.plan[ds]||{});
+  if(extra)pl[extra.id]=extra.code;
+  const items=[];
+  for(const id in pl){
+    if(unavailOf(id,ds)&&!(extra&&extra.id==id))continue;
+    const e=emp(id),s=shift(ds,pl[id]);
+    if(e&&s)items.push({id:+id,e,cash:empCash(e),code:pl[id],s:s.s,en:s.e,p:s.p,n:s.n,ps:null,pe:null});
+  }
+  items.sort((a,b)=>a.s-b.s||a.en-b.en||a.id-b.id);
+  const usedPauses=[];
+  for(const it of items){
+    if(!it.p)continue;
+    // Allowed pause start range: at least 2h after start, at least 1.5h before end
+    const minP=Math.max(it.s+2,oh[0]+1.5);
+    const maxP=Math.min(it.en-it.p-1.5,oh[1]-it.p-1);
+    const mid=Math.round((it.s+(it.en-it.s-it.p)/2)*2)/2;
+    let bestP=mid,bestScore=1e9;
+    const lo=Math.min(minP,mid),hi=Math.max(maxP,mid);
+    for(let t=lo;t<=hi+.01;t+=.5){
+      const ps=Math.round(t*2)/2,pe=ps+it.p;
+      if(ps<it.s+.5||pe>it.en-.5)continue;
+      let score=Math.abs(ps-mid)*0.4;
+      // Strongly avoid overlapping another person's pause
+      for(const u of usedPauses){
+        if(ps<u[1]&&pe>u[0])score+=40;
+      }
+      // Strongly avoid leaving store or register uncovered during [ps, pe]
+      for(let q=ps;q<pe-.01;q+=.5){
+        let others=0,oCashAny=0,oCash2=0;
+        for(const o of items){
+          if(o.id==it.id)continue;
+          if(q>=o.s&&q<o.en){
+            const inO=o.ps!==null&&q>=o.ps&&q<o.pe;
+            if(!inO){
+              others++;
+              if(o.cash>=1)oCashAny++;
+              if(o.cash===2)oCash2++;
+            }
+          }
+        }
+        if(others===0)score+=100;
+        else if(it.cash>=1&&oCashAny===0)score+=80;
+        else if(it.cash===2&&oCash2===0)score+=18;
+        else if(others===1)score+=2;
+      }
+      if(score<bestScore){bestScore=score;bestP=ps;}
+    }
+    it.ps=bestP;it.pe=bestP+it.p;
+    usedPauses.push([it.ps,it.pe]);
+  }
+  // Build 30-min coverage slots (floor + register)
+  const slots=[],gaps=[],cashGaps=[],cashAvoid=[];
+  for(let t=oh[0];t<oh[1]-.01;t+=.5){
+    let cnt=0,c2=0,c1=0;
+    for(const it of items){
+      if(t>=it.s&&t<it.en){
+        if(it.ps!==null&&t>=it.ps&&t<it.pe)continue;
+        cnt++;
+        if(it.cash===2)c2++;
+        else if(it.cash===1)c1++;
+      }
+    }
+    slots.push({t,cnt,c2,c1});
+    if(cnt===0)gaps.push(t);
+    if(c2+c1===0)cashGaps.push(t);
+    else if(c2===0&&c1>0)cashAvoid.push(t);
+  }
+  return{oh,items,slots,gaps,cashGaps,cashAvoid};
+}
+
+function describe(r){
+  const d=r.days.length==7?'Ganze Woche':r.days.map(i=>DN[i]).join(' + ');
+  const w=r.win.map(([a,b])=>a==0&&b==24?'ganztags':f(a)+'–'+f(b)+' Uhr').join(' und ');
+  const t={no:'kann nicht',only:'kann nur',pref:'möchte lieber nicht',like:'möchte lieber'}[r.t]||r.t;
+  return d+': '+t+' '+w+(r.from?' (ab '+de(r.from)+')':'')+(r.to?' (bis '+de(r.to)+')':'');
+}
+
+function likeScore(e,ds,sh){
+  if(!sh||!e||!e.rules)return 0;
+  const wd=wdOf(ds);
+  let sc=0;
+  for(const r of e.rules){
+    if(r.t!=='like'||r.off||(r.from&&ds<r.from)||(r.to&&ds>r.to)||!r.days.includes(wd))continue;
+    const ins=r.win.some(([a,b])=>sh.s>=a-.01&&sh.e<=b+.01);
+    const ov=r.win.some(([a,b])=>sh.s<b&&sh.e>a);
+    if(ins)sc-=12;
+    else if(ov)sc-=3;
+    else sc+=4;
+  }
+  return sc;
+}
+
+function check(e,ds,code){
+  const sh=shift(ds,code),H=[],W=[];
+  if(!sh)return{H,W};
+  const oe=outOfEmp(e.id,ds);
+  if(oe){
+    const st=empStart(e.id),en=empEnd(e.id);
+    H.push(oe==='vor Eintritt'?'fängt erst ab '+de(st)+' an':'bereits ausgeschieden (bis '+de(en)+')');
+  }
+  const a=absOf(e.id,ds);
+  if(a)H.push('abwesend ('+a+')');
+  if(sh.n>10.01)H.push('über 10 Std. Tagesarbeitszeit (ArbZG)');
+  const wd=wdOf(ds);
+  for(const r of e.rules){
+    if(r.off||(r.from&&ds<r.from)||(r.to&&ds>r.to)||!r.days.includes(wd))continue;
+    const ov=r.win.some(([a,b])=>sh.s<b&&sh.e>a);
+    const ins=r.win.some(([a,b])=>sh.s>=a-.01&&sh.e<=b+.01);
+    if(r.t==='like'){
+      if(!ins)W.push('Wunsch: '+describe(r));
+    }else if(r.t==='only'?!ins:ov){
+      (r.t==='pref'?W:H).push((r.t==='pref'?'Wunsch: ':'Regel: ')+describe(r));
+    }
+  }
+  const pv=iso(add(P(ds),-1)),nx=iso(add(P(ds),1));
+  const pc=unavailOf(e.id,pv)?null:(S.plan[pv]||{})[e.id];
+  const nc=unavailOf(e.id,nx)?null:(S.plan[nx]||{})[e.id];
+  const ps=pc&&shift(pv,pc),ns=nc&&shift(nx,nc);
+  if((ps&&24-ps.e+sh.s<11)||(ns&&24-sh.e+ns.s<11))H.push('Ruhezeit unter 11 Std.');
+  if(e.gfb&&e.wage&&(moH(e.id,ds,ds)+sh.n)*e.wage>S.cap+1e-6)H.push('Monatsgrenze '+S.cap+' € überschritten');
+  const sMax=empSatMax(e),lvl=satLvl();
+  let satOver=false,satWarned=false;
+  if(wd==5&&satN(e.id,ds)>=sMax){
+    satOver=true;
+    const sMsg=sMax===0?'keine Samstage vorgesehen':'mehr als '+sMax+' Samstag'+(sMax===1?'':'e')+' im Monat';
+    if(lvl>=5)H.push(sMsg);
+    else if(lvl>=2){W.push(sMsg);satWarned=true;}
+  }
+  return{H,W,satOver,wOther:W.length-(satWarned?1:0)};
+}
+
+function empSatMax(e){
+  if(e&&e.satMax!==''&&e.satMax!==null&&e.satMax!==undefined&&!isNaN(+e.satMax)){
+    return Math.max(0,Math.floor(+e.satMax));
+  }
+  return Math.max(0,Math.floor(+S.satMax||0));
+}
+
+function empMode(e){
+  if(e&&(e.gfb||e.f==='GFB'))return e.gfbMode||S.gfbMode||'short';
+  return'std';
+}
+function remBudget(e,ds){
+  const wt=empWeekTarget(e,ds);
+  const wkRem=e.h?Math.max(0,wt-wkEff(e,ds)):(isEmployed(e.id,ds)?8:0);
+  const capRem=(e.gfb&&e.wage)?Math.max(0,(S.cap/e.wage)-moH(e.id,ds,ds)):999;
+  return{wkRem,capRem,rem:Math.min(wkRem,capRem),wt};
+}
+function daysWorkedInWeek(eid,ds){
+  const m=mon(P(ds));let days=0;
+  for(let i=0;i<7;i++){
+    const d=iso(add(m,i));
+    if(d!==ds&&(S.plan[d]||{})[eid]&&!unavailOf(eid,d))days++;
+  }
+  return days;
+}
+function idealShortDur(rem){
+  if(rem<=6)return Math.floor(rem*2)/2;
+  if(rem<=12)return Math.min(6,Math.max(2.5,Math.ceil((rem/2)*2)/2));
+  return 5;
+}
+
+/* Candidate shift matcher: supports full shifts, keyholder boundary enforcement, and flexible TZ/GFB modes */
+function fit(e,ds,code,reqEdge){
+  if(unavailOf(e.id,ds))return null;
+  if(B&&maybeOutOf(e.id,ds))return null;
+  const oh=openH(ds);
+  if(!oh)return null;
+  if(daysWorkedInWeek(e.id,ds)>=5)return null;
+
+  const b=remBudget(e,ds),rem=b.rem;
+  if(e.h&&rem<2.5)return null;
+  const mode=empMode(e);
+
+  const cands=[];
+  const pushC=x=>{if(x&&!cands.includes(x))cands.push(x)};
+
+  if(mode!=='short'){
+    pushC(code);
+    // Exact-fit full day (e.g. 7.5h net = 8.5h gross for 7.55h Soll)
+    if(rem>=6.5){
+      const tNet=Math.min(8,Math.floor(rem*2)/2);
+      if(tNet>6){
+        const gross=tNet+S.pause/60;
+        if(oh[0]+gross<=oh[1]+.01){
+          if(code==='F'||code==='K')pushC('c'+oh[0]+'-'+Math.min(oh[1],oh[0]+gross));
+          if(code==='S'||code==='K')pushC('c'+Math.max(oh[0],oh[1]-gross)+'-'+oh[1]);
+        }
+      }
+    }
+  }
+
+  const wd=wdOf(ds);
+  // Employee 'only' and 'like' windows
+  for(const r of e.rules){
+    if((r.t==='only'||r.t==='like')&&!r.off&&r.days.includes(wd)&&!(r.from&&ds<r.from)&&!(r.to&&ds>r.to)){
+      for(const[a,bw]of r.win){
+        if(a<=0&&bw>=24)continue;
+        const s=Math.max(a,oh[0]),en=Math.min(bw,oh[1]);
+        if(en-s>=2.5)pushC('c'+s+'-'+en);
+      }
+    }
+  }
+
+  // Flexible short shifts for TZ/GFB or when remaining weekly hours are < 8h
+  if(e.f==='TZ'||e.f==='GFB'||rem<8){
+    const idD=idealShortDur(rem);
+    const tryList=[idD,...[5,4.5,4,3.5,6,3,2.5].filter(d=>d!==idD)];
+    for(const dTry of tryList){
+      if(dTry>=2.5&&dTry<=6&&dTry<=rem+.05){
+        if(code==='F'||code==='K')pushC('c'+oh[0]+'-'+Math.min(oh[1],oh[0]+dTry));
+        if(code==='S'||code==='K')pushC('c'+Math.max(oh[0],oh[1]-dTry)+'-'+oh[1]);
+      }
+    }
+  }
+
+  if(mode==='short')pushC(code); // Last resort if nobody else is available
+
+  let best=null;
+  const cmp=(a,b)=>{for(let i=0;i<a.length;i++)if(a[i]!==b[i])return a[i]-b[i];return 0;};
+  for(const x of cands){
+    const sh=shift(ds,x);
+    if(!sh||sh.n<2.5)continue;
+    if(reqEdge==='open'&&sh.s>oh[0]+.01)continue;
+    if(reqEdge==='close'&&sh.e<oh[1]-.01)continue;
+    if(reqEdge==='both'&&(sh.s>oh[0]+.01||sh.e<oh[1]-.01))continue;
+    const k=check(e,ds,x);
+    if(k.H.length)continue;
+    if(e.h&&wkEff(e,ds)+sh.n>b.wt+.25)continue;
+    const left=rem-sh.n;
+    const deadLeft=(e.h&&mode!=='full'&&left>.6&&left<2.5)?1:0;
+    const isStd=(x===code)?0:1;
+    const modePen=(mode==='short'&&sh.n>6)?1:((mode==='full'&&rem>=6.5&&sh.n<=6)?1:0);
+    const idDiff=(mode==='short')?Math.abs(sh.n-idealShortDur(rem)):0;
+    const lk=likeScore(e,ds,sh);
+    const key=[k.wOther,modePen,deadLeft,lk,mode!=='short'?isStd:0,idDiff,-sh.n];
+    if(!best||cmp(key,best.key)<0){
+      best={code:x,w:k.W.length,wOther:k.wOther,satOver:k.satOver,lk,isStd,n:sh.n,key};
+    }
+  }
+  return best;
+}
+
+function genWeekAt(mondayDate,opts){
+  if(isWeekLocked(mondayDate))return false;
+  opts=opts||{};
+  const protectYm=opts.protectYm||null;
+  const ignorePrev=!!opts.ignorePrev;
+  const weekDays=[...Array(7)].map((_,i)=>iso(add(mondayDate,i)));
+  const lockedDays=new Set();
+
+  // Protect neighboring-month days if enabled
+  weekDays.forEach(ds=>{
+    if(protectYm&&ds.slice(0,7)!==protectYm&&S.plan[ds]&&Object.keys(S.plan[ds]).length>0){
+      lockedDays.add(ds);
+    }else{
+      delete S.plan[ds];
+    }
+  });
+  const ym=protectYm||weekDays[3].slice(0,7);
+
+  // Pre-pass: carry over previous week's shifts for locked/marked employees (or all if keepPrevAll)
+  if(!ignorePrev&&(S.keepPrevAll||S.emps.some(e=>e.keepPrev))){
+    for(const ds of weekDays){
+      if(lockedDays.has(ds))continue;
+      const oh=openH(ds);
+      if(!oh)continue;
+      const prevDs=iso(add(P(ds),-7));
+      const prevPl=S.plan[prevDs]||{};
+      S.plan[ds]=S.plan[ds]||{};
+      for(const e of S.emps){
+        if(!(S.keepPrevAll||e.keepPrev))continue;
+        const code=prevPl[e.id];
+        if(!code)continue;
+        if(B&&maybeOutOf(e.id,ds))continue;
+        if(unavailOf(e.id,ds))continue;
+        if(daysWorkedInWeek(e.id,ds)>=5)continue;
+        const sh=shift(ds,code);
+        if(!sh||sh.n<2.5)continue;
+        if(e.h&&wkEff(e,ds)+sh.n>empWeekTarget(e,ds)+.25)continue;
+        if(check(e,ds,code).H.length)continue;
+        S.plan[ds][e.id]=code;
+      }
+    }
+  }
+
+  // Phase 1 & 2: Core opening/closing shifts (incl. Warentag extra Früh) + pause gap protection
+  for(const ds of weekDays){
+    if(lockedDays.has(ds))continue;
+    const oh=openH(ds);
+    if(!oh)continue;
+    const short=oh[1]-oh[0]<=6;
+    const extraF=isWareDay(ds)?(S.wareExtraF||0):0;
+    const seq=short
+      ? Array(S.nK+extraF).fill('K')
+      : ['F','S',...Array(Math.max(0,S.nF-1+extraF)).fill('F'),...Array(Math.max(0,S.nS-1)).fill('S')];
+    S.plan[ds]=S.plan[ds]||{};
+
+    // Count how many F/S/K & opening/closing keyholder slots are already covered by carried-over shifts
+    const existingIds=Object.keys(S.plan[ds]);
+    let hasOpenKey=false,hasCloseKey=false,exF=0,exS=0,exK=0;
+    existingIds.forEach(id=>{
+      const e=emp(id),s=shift(ds,S.plan[ds][id]);
+      if(!e||!s)return;
+      if(e.key&&s.s<=oh[0]+.01)hasOpenKey=true;
+      if(e.key&&s.e>=oh[1]-.01)hasCloseKey=true;
+      if(short)exK++;
+      else if(s.s<=oh[0]+.25)exF++;
+      else if(s.e>=oh[1]-.25)exS++;
+    });
+
+    seq.forEach((code,j)=>{
+      const needKey=short?(j===0):(j<2);
+      // Skip slot if already satisfied by carried-over shift
+      if(short){
+        if(exK>0&&(!needKey||(hasOpenKey&&hasCloseKey))){exK--;return;}
+      }else if(code==='F'){
+        if(exF>0&&(!needKey||hasOpenKey)){exF--;return;}
+      }else if(code==='S'){
+        if(exS>0&&(!needKey||hasCloseKey)){exS--;return;}
+      }
+
+      const reqEdge=needKey?(short?'both':(code==='F'?'open':'close')):null;
+      let c=S.emps
+        .filter(e=>!S.plan[ds][e.id])
+        .map(e=>({e,r:fit(e,ds,code,reqEdge)}))
+        .filter(x=>x.r);
+
+      if(!c.length&&reqEdge){
+        c=S.emps.filter(e=>!S.plan[ds][e.id]).map(e=>({e,r:fit(e,ds,code,null)})).filter(x=>x.r);
+      }
+      const lvl=satLvl();
+      if(needKey){
+        const k1=c.filter(x=>x.e.key==1),k2=c.filter(x=>x.e.key==2);
+        if(lvl>=3){
+          const k1Ok=k1.filter(x=>!x.r.satOver);
+          const k2Ok=k2.filter(x=>!x.r.satOver);
+          if(k1Ok.length)c=k1Ok;
+          else if(lvl>=4&&k2Ok.length)c=k2Ok;
+          else if(k1.length&&k2Ok.length)c=[...k1,...k2Ok];
+          else if(k1.length)c=k1;
+          else if(k2.length)c=k2;
+        }else{
+          if(k1.length)c=k1;else if(k2.length)c=k2;
+        }
+      }else if(lvl>=4){
+        // On Stufe 4 (Streng), non-keyholder extra slots in Phase 1 should avoid exceeding Saturday limit unless store would have a gap
+        const under=c.filter(x=>!x.r.satOver);
+        if(under.length)c=under;
+      }
+
+      const baseSch1=daySchedule(ds);
+      const baseGaps=baseSch1.gaps.length,baseCashGaps=baseSch1.cashGaps.length;
+      c.forEach(x=>{
+        const afterSch1=daySchedule(ds,{id:x.e.id,code:x.r.code});
+        const afterGaps=afterSch1.gaps.length;
+        const cashGain=baseCashGaps-afterSch1.cashGaps.length;
+        const cashAvoidPen=afterSch1.cashAvoid.length*1.8;
+        const util=wkEff(x.e,ds)/(empWeekTarget(x.e,ds)||1);
+        const el=earlyLateCount(x.e.id,ym);
+        const elBal=code==='F'?(el.ef-el.es):(code==='S'?(el.es-el.ef):0);
+        const satScore=wdOf(ds)===5?(satN(x.e.id,ds)*3+(x.r.satOver?SAT_PEN_CORE[lvl]:0)):0;
+        const emergKeyPen=(needKey&&x.e.key==2)?25:0;
+        const shortGfbPen=(empMode(x.e)==='short'&&!needKey)?8:0;
+        x.score=(x.r.wOther||0)*50 + (x.r.lk||0) + afterGaps*8 - cashGain*3.5 + cashAvoidPen + satScore + emergKeyPen + util*5 + elBal*0.6 + x.r.isStd*0.35 + shortGfbPen;
+        if(afterGaps<baseGaps)x.score-=2;
+      });
+      c.sort((a,b)=>a.score-b.score);
+      if(c[0]){
+        S.plan[ds][c[0].e.id]=c[0].r.code;
+        const sh=shift(ds,c[0].r.code);
+        if(c[0].e.key&&sh){
+          if(sh.s<=oh[0]+.01)hasOpenKey=true;
+          if(sh.e>=oh[1]-.01)hasCloseKey=true;
+        }
+      }
+    });
+
+    // Phase 2a: Gap protection if pauses/coverage leave store empty
+    const sch=daySchedule(ds);
+    if(sch.gaps.length>0){
+      const gapStart=sch.gaps[0],gapEnd=sch.gaps[sch.gaps.length-1]+0.5;
+      const sTry=Math.max(oh[0],Math.min(gapStart-1,oh[1]-4));
+      const eTry=Math.min(oh[1],Math.max(gapEnd+1,sTry+4));
+      if(eTry-sTry>=3){
+        const coverCode='c'+sTry+'-'+eTry;
+        const lvl2=satLvl();
+        let coverCands=S.emps
+          .filter(e=>!S.plan[ds][e.id])
+          .map(e=>({e,r:fit(e,ds,coverCode,null)}))
+          .filter(x=>x.r);
+        coverCands.forEach(x=>{
+          const aSch=daySchedule(ds,{id:x.e.id,code:x.r.code});
+          x.gAfter=aSch.gaps.length;
+          x.score=x.gAfter*20 + aSch.cashGaps.length*8 + aSch.cashAvoid.length*2 + (x.r.wOther||0)*50 + (x.r.satOver?SAT_PEN_CORE[lvl2]:0) + (wkEff(x.e,ds)/(x.e.h||1))*5;
+        });
+        coverCands=coverCands.filter(x=>x.gAfter<sch.gaps.length);
+        coverCands.sort((a,b)=>a.score-b.score);
+        if(coverCands[0])S.plan[ds][coverCands[0].e.id]=coverCands[0].r.code;
+      }
+    }
+
+    // Phase 2b: Cashier gap protection if store has people on floor but NO cashier
+    for(let cp=0;cp<2;cp++){
+      const schC=daySchedule(ds);
+      if(!schC.cashGaps.length)break;
+      const g0=schC.cashGaps[0],g1=schC.cashGaps[schC.cashGaps.length-1]+0.5;
+      const span=g1-g0;
+      const tryCodes=[];
+      if(span>6){tryCodes.push(g0<=oh[0]+1?'F':'S');}
+      const sTry=Math.max(oh[0],Math.min(g0,oh[1]-3));
+      const eTry=Math.min(oh[1],Math.max(g1,sTry+3));
+      if(eTry-sTry>=2.5)tryCodes.push('c'+sTry+'-'+eTry);
+      if(g0<=oh[0]+1)tryCodes.push('F');
+      if(g1>=oh[1]-1)tryCodes.push('S');
+      const lvlC=satLvl();
+      let cCands=[];
+      S.emps.filter(e=>!S.plan[ds][e.id]&&empCash(e)>=1).forEach(e=>{
+        for(const tc of tryCodes){
+          const r=fit(e,ds,tc,null);
+          if(!r)continue;
+          const aSch=daySchedule(ds,{id:e.id,code:r.code});
+          if(aSch.cashGaps.length<schC.cashGaps.length){
+            const sc=aSch.cashGaps.length*25 + aSch.cashAvoid.length*3 + (empCash(e)===1?15:0) + (r.wOther||0)*50 + (r.satOver?SAT_PEN_CORE[lvlC]:0) + (wkEff(e,ds)/(e.h||1))*5;
+            cCands.push({e,r,sc});
+            break;
+          }
+        }
+      });
+      cCands.sort((a,b)=>a.sc-b.sc);
+      if(cCands[0])S.plan[ds][cCands[0].e.id]=cCands[0].r.code;
+      else break;
+    }
+  }
+
+  // Phase 3: Target-hour & GFB/TZ reinforcement pass (respects locked neighbor days & modes)
+  const openDays=weekDays.filter(ds=>!lockedDays.has(ds)&&!!openH(ds));
+  for(let round=0;round<5;round++){
+    let placedAny=false;
+    const queue=S.emps
+      .filter(e=>e.h&&daysWorkedInWeek(e.id,weekDays[3])<5&&openDays.some(ds=>!(S.plan[ds]||{})[e.id]&&!unavailOf(e.id,ds)&&!(B&&maybeOutOf(e.id,ds))&&remBudget(e,ds).rem>=2.5))
+      .map(e=>({ratio:wkEff(e,weekDays[3])/(empWeekTarget(e,weekDays[3])||e.h),e}))
+      .sort((a,b)=>a.ratio-b.ratio);
+
+    for(const q of queue){
+      const e=q.e,mode=empMode(e);
+      const availDays=openDays.filter(ds=>!(S.plan[ds]||{})[e.id]&&!unavailOf(e.id,ds)&&!(B&&maybeOutOf(e.id,ds)));
+      if(!availDays.length||daysWorkedInWeek(e.id,weekDays[3])>=5)continue;
+
+      let bestChoice=null;
+      for(const ds of availDays){
+        const oh=openH(ds),b=remBudget(e,ds),rem=b.rem;
+        if(rem<2.5)continue;
+        const wd=wdOf(ds);
+        const prefStart=(wd===5)?(S.gfbSatFrom??11):(S.gfbFrom??15);
+        const idDur=idealShortDur(rem);
+
+        const cands=[];
+        const addC=x=>{if(x&&!cands.includes(x))cands.push(x)};
+
+        for(const r of e.rules){
+          if((r.t==='only'||r.t==='like')&&!r.off&&r.days.includes(wd)&&!(r.from&&ds<r.from)&&!(r.to&&ds>r.to)){
+            for(const[a,bw]of r.win){
+              if(a<=0&&bw>=24)continue;
+              const s=Math.max(a,oh[0]),en=Math.min(bw,oh[1]),span=en-s;
+              if(span>=2.5){
+                addC('c'+s+'-'+en);
+                const tNet=Math.min(6,Math.floor(rem*2)/2);
+                if(tNet>=2.5&&tNet<span){
+                  addC('c'+s+'-'+(s+tNet));
+                  addC('c'+(en-tNet)+'-'+en);
+                }
+              }
+            }
+          }
+        }
+
+        if((mode==='full'||mode==='auto'||mode==='std')&&rem>=6.5){
+          addC('F');addC('S');
+          const tNet=Math.min(8,Math.floor(rem*2)/2);
+          if(tNet>6){
+            const gross=tNet+S.pause/60;
+            if(oh[0]+gross<=oh[1]+.01){
+              addC('c'+oh[0]+'-'+Math.min(oh[1],oh[0]+gross));
+              addC('c'+Math.max(oh[0],oh[1]-gross)+'-'+oh[1]);
+            }
+          }
+        }
+
+        const durs=[idDur,...[5,4.5,4,3.5,6,3,2.5].filter(d=>d<=rem+.05&&d!==idDur)];
+        for(const dur of durs){
+          if(dur<2.5||dur>6||dur>(oh[1]-oh[0])+.01)continue;
+          addC('c'+Math.max(oh[0],oh[1]-dur)+'-'+oh[1]);
+          const ps0=Math.max(oh[0],Math.min(prefStart,oh[1]-dur));
+          addC('c'+ps0+'-'+Math.min(oh[1],ps0+dur));
+          const ms0=Math.max(oh[0],Math.min(11.5,oh[1]-dur));
+          addC('c'+ms0+'-'+Math.min(oh[1],ms0+dur));
+          addC('c'+oh[0]+'-'+Math.min(oh[1],oh[0]+dur));
+        }
+
+        const curHeadcount=Object.keys(S.plan[ds]||{}).length;
+        const pvWork=(S.plan[iso(add(P(ds),-1))]||{})[e.id]?1:0;
+        const nxWork=(S.plan[iso(add(P(ds),1))]||{})[e.id]?1:0;
+        const baseSch=daySchedule(ds);
+        const baseLow=baseSch.slots.filter(sl=>sl.cnt<=1).length;
+        const baseCashGaps=baseSch.cashGaps.length,baseCashAvoid=baseSch.cashAvoid.length;
+
+        for(const code of cands){
+          const sh=shift(ds,code);
+          if(!sh||sh.n<2.5)continue;
+          if(e.h&&wkEff(e,ds)+sh.n>b.wt+.25)continue;
+          if(e.gfb&&e.wage&&(moH(e.id,ds,ds)+sh.n)*e.wage>S.cap+1e-6)continue;
+          const k=check(e,ds,code);
+          if(k.H.length)continue;
+
+          const left=rem-sh.n,isFull=sh.n>6;
+          let modeScore=0;
+          if(mode==='full')modeScore=isFull?-16:4;
+          else if(mode==='short')modeScore=!isFull?(-16+Math.abs(sh.n-idDur)*2.5):24;
+          else if(mode==='auto')modeScore=(left<.6||left>=2.5)?(-6+(isFull?0:Math.abs(sh.n-idDur)*1.2)):4;
+          else modeScore=isFull?-3:0;
+
+          const deadPen=(left>.6&&left<2.5)?(mode!=='full'?20:2):0;
+          const ovPeak=!isFull?Math.max(0,Math.min(sh.e,oh[1])-Math.max(sh.s,prefStart)):0;
+          const peakBonus=-1.1*ovPeak;
+          const afterSch=daySchedule(ds,{id:e.id,code});
+          const afterLow=afterSch.slots.filter(sl=>sl.cnt<=1).length;
+          const covImprove=(baseLow-afterLow)*0.8 + (baseCashGaps-afterSch.cashGaps.length)*6 + (baseCashAvoid-afterSch.cashAvoid.length)*2.2;
+          const peakDayBonus=(wd>=3&&wd<=5)?-1.2:0;
+          const wareBonus=isWareDay(ds)&&sh.s<=oh[0]+1.5?-1.5:0;
+          const lvl3=satLvl();
+          if(lvl3>=4&&k.satOver)continue;
+          const satPen=(wd===5)?(satN(e.id,ds)*4+(k.satOver?SAT_PEN_EXTRA[lvl3]:0)):0;
+          const sizeBonus=(mode!=='short')?(-0.7*sh.n):0;
+
+          const lk=likeScore(e,ds,sh);
+          const score=k.wOther*50 + lk + modeScore + deadPen + curHeadcount*7 + (pvWork+nxWork)*2.5 + satPen + peakDayBonus + wareBonus + peakBonus - covImprove + sizeBonus;
+          if(!bestChoice||score<bestChoice.score){
+            bestChoice={ds,code,score};
+          }
+        }
+      }
+
+      if(bestChoice){
+        S.plan[bestChoice.ds]=S.plan[bestChoice.ds]||{};
+        S.plan[bestChoice.ds][e.id]=bestChoice.code;
+        placedAny=true;
+      }
+    }
+    if(!placedAny)break;
+  }
+}
+
+function gen(b,ignorePrev,protectYm){
+  if(isWeekLocked(wk)){toast('🔒 Woche ist fixiert – erst entsperren');return;}
+  if(!b&&S.pa)delete S.pa[iso(wk)];
+  B=b?1:0;
+  genWeekAt(wk,{ignorePrev:!!ignorePrev,protectYm:protectYm||null});
+  B=0;sv();render();
+  toast(b?'Plan B erstellt':(ignorePrev?'Woche komplett neu geplant':'Wochenplan erstellt'));
+}
+
+function genMonth(ignorePrev){
+  const th=add(wk,3);
+  const y=th.getFullYear(),m=th.getMonth();
+  const ym=y+'-'+String(m+1).padStart(2,'0');
+  const first=new Date(y,m,1,12),last=new Date(y,m+1,0,12);
+  let curMon=mon(first);
+  const endMon=mon(last);
+  let count=0,skipped=0;
+  B=0;
+  while(curMon<=endMon){
+    if(isWeekLocked(curMon)){
+      skipped++;
+    }else{
+      if(S.pa)delete S.pa[iso(curMon)];
+      genWeekAt(curMon,{protectYm:S.protectNeighbor?ym:null,ignorePrev:!!ignorePrev});
+      count++;
+    }
+    curMon=add(curMon,7);
+  }
+  sv();render();
+  toast(`Monatsplan ${MNm[m]} ${y}: ${count} Woche(n) geplant`+(skipped?` · ${skipped} fixierte übersprungen`:''));
+}
+
+function askCopyPrev(){
+  if(isWeekLocked(wk)){askUnlock('Vorwoche übernehmen',()=>askCopyPrev());return;}
+  const prevDays=[...Array(7)].map((_,i)=>iso(add(wk,i-7)));
+  const hasPrev=prevDays.some(ds=>Object.keys(S.plan[ds]||{}).length>0);
+  if(!hasPrev){toast('Die Vorwoche enthält keine Schichten');return;}
+  const days=[...Array(7)].map((_,i)=>iso(add(wk,i)));
+  const hasCur=days.some(ds=>Object.keys(S.plan[ds]||{}).length>0);
+  const hasMarked=S.emps.some(e=>e.keepPrev);
+  const pKw=kw(P(prevDays[3])),cKw=kw(P(days[3]));
+  show(`<h3>Vorwoche übernehmen (KW ${pKw} → KW ${cKw})</h3>
+    <p>${hasCur?'Bestehende Schichten in KW '+cKw+' werden für die ausgewählten Mitarbeiter überschrieben. ':'Übernimmt die Schichten 1:1 aus KW '+pKw+'. '}Feiertage, Ruhetage und eingetragene Abwesenheiten bleiben automatisch frei.</p>
+    <button class=btn onclick="hide();copyPrevWeek(false)">Alle Mitarbeiter übernehmen</button>
+    ${hasMarked?`<button class="btn sec" onclick="hide();copyPrevWeek(true)">Nur Mitarbeiter mit festem Rhythmus (${S.emps.filter(e=>e.keepPrev).length})</button>`:''}
+    <button class="btn sec" onclick="hide()">Abbrechen</button>`);
+}
+function copyPrevWeek(onlyMarked){
+  if(S.pa)delete S.pa[iso(wk)];
+  let copied=0,skipped=0;
+  for(let i=0;i<7;i++){
+    const ds=iso(add(wk,i)),prevDs=iso(add(wk,i-7));
+    const oh=openH(ds);
+    const prevPl=S.plan[prevDs]||{};
+    if(!onlyMarked)delete S.plan[ds];
+    if(!oh)continue;
+    S.plan[ds]=S.plan[ds]||{};
+    for(const e of S.emps){
+      if(onlyMarked&&!e.keepPrev)continue;
+      delete S.plan[ds][e.id];
+      const code=prevPl[e.id];
+      if(!code)continue;
+      if(unavailOf(e.id,ds)){skipped++;continue;}
+      if(!shift(ds,code)){skipped++;continue;}
+      S.plan[ds][e.id]=code;
+      copied++;
+    }
+  }
+  sv();render();
+  toast(copied+' Schichten aus Vorwoche übernommen'+(skipped?' ('+skipped+' wegen Abwesenheit/Schließtag übersprungen)':''));
+}
+
+function warnsForWeek(mondayDate){
+  const o=[];
+  for(let i=0;i<7;i++){
+    const ds=iso(add(mondayDate,i)),oh=openH(ds),L=DN[i]+' '+dm(ds)+' ';
+    if(!oh)continue;
+    const pl=S.plan[ds]||{};
+    let open=0,close=0,cnt=0;
+    for(const id in pl){
+      if(unavailOf(id,ds))continue;
+      const e=emp(id);if(!e)continue;
+      const k=check(e,ds,pl[id]),s=shift(ds,pl[id]);
+      if(!s)continue;
+      cnt++;
+      if(e.key&&s.s<=oh[0]+.01)open=Math.max(open,3-e.key);
+      if(e.key&&s.e>=oh[1]-.01)close=Math.max(close,3-e.key);
+      k.H.forEach(msg=>o.push(['bad',L+nm(e)+': '+msg]));
+      k.W.forEach(msg=>o.push(['warn',L+nm(e)+': '+msg]));
+    }
+    if(!open)o.push(['bad',L+'keine Schlüsselkraft zur Öffnung']);
+    else if(open==1)o.push(['warn',L+'Öffnung nur durch Notfall-Schlüsselkraft']);
+    if(!close)o.push(['bad',L+'keine Schlüsselkraft zur Schließung']);
+    else if(close==1)o.push(['warn',L+'Schließung nur durch Notfall-Schlüsselkraft']);
+    const sch=daySchedule(ds);
+    if(sch.gaps.length&&cnt){
+      o.push(['bad',L+'ab '+f(sch.gaps[0])+' Uhr niemand auf der Fläche (Lücke/Pause)']);
+    }
+    const nonEmptyCashGaps=sch.cashGaps.filter(t=>!sch.gaps.includes(t));
+    if(nonEmptyCashGaps.length&&cnt){
+      o.push(['bad',L+'ab '+f(nonEmptyCashGaps[0])+' Uhr keine Kassenkraft auf der Fläche']);
+    }else if(sch.cashAvoid.length&&cnt){
+      o.push(['warn',L+'ab '+f(sch.cashAvoid[0])+' Uhr Kasse nur durch „Kasse vermeiden“-Kraft besetzt']);
+    }
+    const extraF=isWareDay(ds)?(S.wareExtraF||0):0;
+    const need=(oh[1]-oh[0]<=6?S.nK:S.nF+S.nS)+extraF;
+    if(cnt<need)o.push(['warn',L+'Besetzung unvollständig ('+cnt+' von '+need+(extraF?' inkl. Warentag':'')+')']);
+  }
+  return o;
+}
+const warns=()=>warnsForWeek(wk);
+
+/* Monats-Ripple-Radar: detects conflicts & open Plan B in OTHER weeks of the month */
+function monthRipple(ym,curWkIso){
+  const items=[];
+  const seen=new Set();
+  const pushR=(type,wkIso,kwNum,msg)=>{
+    const k=wkIso+'|'+msg;
+    if(seen.has(k))return;
+    seen.add(k);
+    items.push({type,wkIso,kwNum,msg});
+  };
+
+  // 1) Any open Plan B in OTHER weeks (globally, so none is forgotten!)
+  if(S.pa){
+    Object.keys(S.pa).sort().forEach(mIso=>{
+      if(mIso===curWkIso)return;
+      const kNum=kw(add(P(mIso),3));
+      pushR('warn',mIso,kNum,`KW ${kNum}: Plan B ist noch aktiv (fließt ins Monatskonto ein)`);
+    });
+  }
+
+  // 2) Scan other weeks in the same month that already have shifts planned
+  const y=+ym.slice(0,4),m=+ym.slice(5)-1;
+  const first=new Date(y,m,1,12),last=new Date(y,m+1,0,12);
+  let curM=mon(first);
+  const endM=mon(last);
+  while(curM<=endM){
+    const wIso=iso(curM);
+    if(wIso!==curWkIso){
+      const wDays=[...Array(7)].map((_,i)=>iso(add(curM,i)));
+      const hasAny=wDays.some(ds=>{
+        const pl=S.plan[ds]||{};
+        return Object.keys(pl).some(id=>!unavailOf(id,ds));
+      });
+      if(hasAny){
+        const kNum=kw(P(wDays[3]));
+        const ww=warnsForWeek(curM);
+        const bads=ww.filter(x=>x[0]==='bad');
+        if(bads.length){
+          const firstMsg=bads[0][1];
+          const extra=bads.length>1?` (+${bads.length-1} weitere)`:'';
+          pushR('bad',wIso,kNum,`KW ${kNum}: ${firstMsg}${extra}`);
+        }
+      }
+    }
+    curM=add(curM,7);
+  }
+  return items;
+}
+
+function rippleHTML(ym,curWkIso){
+  const items=monthRipple(ym,curWkIso);
+  if(!items.length)return'';
+  return`<div class=cov-card style="border-color:rgba(200,16,46,.35)">
+    <div class=cov-head style="margin-bottom:6px">
+      <b>🔔 Monats-Radar (andere Wochen)</b>
+      <small>${items.length} Hinweis${items.length>1?'e':''}</small>
+    </div>
+    ${items.map(it=>`<div class="ripple-item ${it.type}">
+      <span style="flex:1">${it.type==='bad'?'⛔':'⚠️'} ${esc(it.msg)}</span>
+      <button class=sm style="padding:5px 9px;font-size:12.5px;flex:0 0 auto" onclick="jumpWeek('${it.wkIso}')">→ KW ${it.kwNum}</button>
+    </div>`).join('')}
+  </div>`;
+}
+
+function showGuide(){
+  show(`<h3>❓ So planst du richtig</h3>
+    <div class=guide-step><b>1. Vorbereiten:</b> Trage zuerst Urlaube, Krankheiten & <i>Evt. Ausfall</i> unter <b>Abwesenheit</b> ein und prüfe die <b>📦 Warentage</b>.</div>
+    <div class=guide-step><b>2. Monat planen:</b> Erzeuge mit <b>🗓️ Monat planen</b> den fairen Grundrahmen (Samstags-Rotation & 603-€-Limit werden monatsweit beachtet).</div>
+    <div class=guide-step><b>3. Prüfen & fixieren:</b> Feinschliff per Tipp auf Zellen, ggf. <b>Plan B</b> testen – und fertige oder gedruckte Wochen mit <b>🔒 Fixieren</b> sperren.</div>
+    <div class=guide-step><b>4. Drucken & Sichern:</b> Als 1:1-MEP-PDF drucken und regelmäßig <b>💾 Backup sichern</b> (wichtig bei iOS Safari).</div>
+    <p class=l>Wichtige Hinweise zu Änderungen</p>
+    <ul style="margin:4px 0 12px;padding-left:18px;font-size:13.5px;line-height:1.45">
+      <li><b>Abwesenheit nachträglich:</b> Bestehende Schichten im Zeitraum werden automatisch entfernt – prüfe die gemeldete Woche auf Ersatz.</li>
+      <li><b>Woche mitten im Monat ändern:</b> Verändert <i>Summe / Monat</i>, Samstage & 603-€-Budget späterer Wochen. Der <b>🔔 Monats-Radar</b> warnt dich sofort bei Konflikten in anderen Wochen.</li>
+      <li><b>Plan B:</b> Solange Plan B aktiv ist, zählen seine Stunden im Monatskonto mit – danach zurück zu Plan A wechseln oder dauerhaft übernehmen.</li>
+    </ul>
+    <button class="btn sec" onclick="hide()">Verstanden</button>`);
+}
+
+const chg=(ds,id)=>{
+  const pa=S.pa&&S.pa[iso(wk)];
+  return pa&&pa[ds]&&(pa[ds][id]||'')!=((S.plan[ds]||{})[id]||'')?'chg':'';
+};
+
+function empRowMeta(e,days){
+  const st=empStart(e.id),en=empEnd(e.id);
+  const activeInWk=days.some(d=>isEmployed(e.id,d));
+  const cls=[];
+  if(st&&en)cls.push('emp-both');
+  else if(st)cls.push('emp-join');
+  else if(en)cls.push('emp-leave');
+  if(!activeInWk)cls.push('emp-inactive');
+  let badges='';
+  if(st)badges+=`<span class="emp-tag join">🆕 ab ${dm(st)}</span>`;
+  if(en)badges+=`<span class="emp-tag leave">👋 bis ${dm(en)}</span>`;
+  return{st,en,activeInWk,trCls:cls.join(' '),badges};
+}
+
+function cell(e,ds){
+  const oh=openH(ds),id=e.id;
+  const oe=outOfEmp(id,ds);
+  if(oe==='vor Eintritt'){
+    const st=empStart(id);
+    return`<td class="emp-join-cell" title="Fängt erst ab ${de(st)} an">ab ${dm(st)}</td>`;
+  }
+  if(oe==='Ausgeschieden'){
+    const en=empEnd(id);
+    return`<td class="emp-leave-cell" title="Ausgeschieden (letzter Tag ${de(en)})">weg</td>`;
+  }
+  const st=empStart(id),en=empEnd(id);
+  const edgeCls=(st&&ds===st?' day-start':'')+(en&&ds===en?' day-end':'');
+  if(!oh){
+    const h=hol(+ds.slice(0,4))[ds];
+    return`<td class="cl${edgeCls}">${h?'<small>FT</small>':'–'}</td>`;
+  }
+  const a=absOf(id,ds);
+  if(a)return`<td class="ab${edgeCls}">${AB[a]}</td>`;
+  const c=(S.plan[ds]||{})[id];
+  const mo=maybeOutOf(id,ds);
+  const edgeIcon=(st&&ds===st?'<span title="Erster Arbeitstag">🆕</span> ':'')+(en&&ds===en?'<span title="Letzter Arbeitstag">👋</span> ':'');
+  if(!c){
+    if(mo&&isPlanBActive())return`<td class="pbcell cs${edgeCls} ${chg(ds,id)}" onclick="pick('${ds}',${id})">${edgeIcon}Plan B</td>`;
+    return`<td class="fr cs${edgeCls} ${chg(ds,id)}" onclick="pick('${ds}',${id})">${edgeIcon}+</td>`;
+  }
+  const x=shift(ds,c),k=check(e,ds,c);
+  const pbMark=mo?` <span title="Evt. Ausfall (Plan B)" style="color:var(--blue);font-weight:700">?</span>`:'';
+  return`<td class="cs${edgeCls} ${k.H.length?'bad':k.W.length?'warn':''} ${chg(ds,id)}" onclick="pick('${ds}',${id})">${edgeIcon}${f(x.s)}–${f(x.e)}${pbMark}<br><small>P ${Math.round(x.p*60)} · ${x.n.toString().replace('.',',')} h</small></td>`;
+}
+
+function covHTML(days){
+  let rows='';
+  days.forEach((ds,i)=>{
+    const oh=openH(ds);
+    if(!oh)return;
+    const sch=daySchedule(ds);
+    let slots='';
+    for(let h=Math.floor(oh[0]);h<Math.ceil(oh[1]);h++){
+      // Minimum headcount across the 2 half-hours in hour [h, h+1)
+      const sub=sch.slots.filter(sl=>sl.t>=h&&sl.t<h+1);
+      if(!sub.length)continue;
+      const mn=Math.min(...sub.map(sl=>sl.cnt));
+      const cls=mn===0?'cov-0':mn===1?'cov-1':mn===2?'cov-2':mn===3?'cov-3':'cov-4';
+      slots+=`<div class="cov-slot ${cls}">${mn}<span>${h}h</span></div>`;
+    }
+    rows+=`<div class=cov-row onclick="showDayDetail('${ds}')"><div class=cov-day>${DN[i]} ${dm(ds)}</div><div class=cov-bars>${slots}</div></div>`;
+  });
+  return`<div class=cov-card>
+    <div class=cov-head>
+      <b>Tages-Abdeckung (inkl. Pausen)</b>
+      <div class=cov-leg>
+        <span><i class=cov-dot style="background:#ef4444"></i>0 Lücke</span>
+        <span><i class=cov-dot style="background:#f59e0b"></i>1</span>
+        <span><i class=cov-dot style="background:#22c55e"></i>2</span>
+        <span><i class=cov-dot style="background:#0284c7"></i>3</span>
+        <span><i class=cov-dot style="background:#7c3aed"></i>4+</span>
+      </div>
+    </div>
+    ${rows||'<small>Keine offenen Tage in dieser Woche</small>'}
+    <small>Auf einen Tag tippen für genaue Pausen-Staffelung</small>
+  </div>`;
+}
+
+function showDayDetail(ds){
+  const sch=daySchedule(ds);
+  if(!sch.oh)return;
+  const nonEmptyCashGaps=sch.cashGaps.filter(t=>!sch.gaps.includes(t));
+  const list=sch.items.map(it=>`<div class=card style="margin:6px 0;padding:9px 11px">
+    <b>${esc(nm(it.e))}</b> <small>(${esc(it.e.f)}${it.cash<2?' · '+CASH_LBL[it.cash]:''})</small><br>
+    Schicht: <b>${f(it.s)}–${f(it.en)} Uhr</b> (${it.n.toString().replace('.',',')} h netto)<br>
+    ${it.p?`Geplante Pause: <b>${f(it.ps)}–${f(it.pe)} Uhr</b> (${Math.round(it.p*60)} Min.)`:'<small>Keine Pause erforderlich (≤ 6 Std.)</small>'}
+  </div>`).join('')||'<p><small>Niemand eingeteilt</small></p>';
+  show(`<h3>${DNF[wdOf(ds)]}, ${de(ds)}</h3>
+    <small>Öffnungszeit: ${f(sch.oh[0])}–${f(sch.oh[1])} Uhr</small>
+    ${list}
+    ${sch.gaps.length?`<div class="wn bad">⛔ Unbesetzt ab: ${sch.gaps.map(f).join(', ')} Uhr</div>`:''}
+    ${nonEmptyCashGaps.length?`<div class="wn bad">⛔ Keine Kassenkraft ab: ${nonEmptyCashGaps.map(f).join(', ')} Uhr</div>`:(sch.cashAvoid.length?`<div class="wn warn">⚠️ Kasse nur durch „Kasse vermeiden“-Kraft ab: ${sch.cashAvoid.map(f).join(', ')} Uhr</div>`:'')}
+    ${!sch.gaps.length&&!nonEmptyCashGaps.length&&!sch.cashAvoid.length?'<div class="wn ok">✓ Durchgehend besetzt (inkl. Kassenkraft)</div>':''}
+    <button class="btn sec" onclick="hide()">Schließen</button>`);
+}
+
+function accHTML(ym){
+  const mIdx=+ym.slice(5)-1,y=ym.slice(0,4);
+  const rows=S.emps.map(e=>{
+    const st=monthStats(e,ym);
+    const absD=Math.abs(st.diff);
+    const overCap=st.eur!==null&&st.eur>S.cap+.01;
+    const pCls=overCap?'bad':absD<=1?'ok':absD<=4?'warn':'bad';
+    const extra=st.eur!==null
+      ? `<small style="color:${overCap?'var(--pri)':'var(--mut)'}">${st.eur.toFixed(0)}/${S.cap}€${st.capped?' · Deckel':''}</small>`
+      : (()=>{const sMax=empSatMax(e),over=st.sats>sMax,lvl=satLvl();const col=!over?'var(--mut)':lvl>=5?'var(--pri)':lvl>=2?'var(--warnfg)':'var(--mut)';const ic=!over?'':lvl>=5?' ⛔':lvl>=2?' ⚠️':'';return`<small style="color:${col}">${st.sats}/${sMax} Sa${ic}</small>`;})();
+    const stD=empStart(e.id),enD=empEnd(e.id);
+    const rCls=(stD&&enD?'emp-both':stD?'emp-join':enD?'emp-leave':'')+(st.activeDays===0?' emp-inactive':'');
+    const tags=(stD?`<span class="emp-tag join">ab ${dm(stD)}</span>`:'')+(enD?`<span class="emp-tag leave">bis ${dm(enD)}</span>`:'');
+    return`<tr class="${rCls}">
+      <td class="nm emp-link" style="padding-left:6px!important" onclick="openEmp(${e.id})" title="Mitarbeiter-Einstellungen öffnen"><b>${esc(nm(e))}</b><br><small>${esc(e.f)}</small>${tags?'<br>'+tags:''}</td>
+      <td>${fmtDur(st.worked,true)}${st.cred?`<br><small>+${fmtDur(st.cred)} gut</small>`:''}</td>
+      <td>${fmtDur(st.target,true)}</td>
+      <td><span class="pill ${pCls}" style="margin:0">${fmtSigned(st.diff)}</span></td>
+      <td>${extra}</td>
+    </tr>`;
+  }).join('');
+  return`<div class=cov-card>
+    <div class=cov-head>
+      <b>📊 Monats-Stundenkonto · ${MNm[mIdx]} ${y}</b>
+      <small>Teiler ${S.absDiv===6?'6 (Mo–Sa)':'5 (Mo–Fr)'}${S.absCredit?' · inkl. Gutschrift':''}</small>
+    </div>
+    <table class=acc-tbl>
+      <tr><th>Mitarbeiter</th><th>Ist</th><th>Monatssoll</th><th>Saldo</th><th>Info</th></tr>
+      ${rows||'<tr><td colspan=5>Kein Team</td></tr>'}
+    </table>
+  </div>`;
+}
+
+function planV(){
+  const days=[...Array(7)].map((_,i)=>iso(add(wk,i)));
+  const th=P(days[3]),w=warns();
+  const isNow=iso(wk)===iso(mon(new Date()));
+  const head=days.map((ds,i)=>{
+    const h=hol(+ds.slice(0,4))[ds],oh=openH(ds);
+    const wt=oh?`<br><button class="wt-btn ${isWareDay(ds)?'on':''}" onclick="toggleWareDay('${ds}')" title="Warentag für ${dm(ds)} an/aus">📦 Ware</button>`:'';
+    return`<th>${DN[i]}<br><small>${dm(ds)}</small>${h?'<br><small>'+esc(h)+'</small>':!oh?'<br><small>geschlossen</small>':'<br><small>'+f(oh[0])+'–'+f(oh[1])+'</small>'+wt}</th>`;
+  }).join('');
+
+  const ymCur=days[3].slice(0,7);
+  const hasJoinLeave=S.emps.some(e=>empStart(e.id)||empEnd(e.id));
+  const rows=S.emps.map(e=>{
+    let sw=0;days.forEach(d=>sw+=net(e.id,d));
+    const cr=wkCred(e,days[3]);
+    const wt=empWeekTarget(e,days[3]);
+    const isProrated=e.h&&Math.abs(wt-e.h)>.05;
+    const st=monthStats(e,ymCur);
+    const pmDisp=S.creditInMEP?st.actual:st.worked;
+    const meta=empRowMeta(e,days);
+    let gfbBadge='';
+    if(e.gfb&&e.wage){
+      const pct=st.eur/S.cap;
+      gfbBadge=`<br><small style="color:${pct>1?'var(--pri)':pct>.85?'var(--warnfg)':'var(--mut)'}">${st.eur.toFixed(0)}/${S.cap}€</small>`;
+    }
+    return`<tr class="${meta.trCls}">
+      <td class="nm emp-link" onclick="openEmp(${e.id})" title="Mitarbeiter-Einstellungen öffnen">${esc(nm(e))}<span class=nm-edit>✎</span><br><small>${esc(e.f)}${e.key==1?' 🔑':e.key==2?' 🗝️':''}${empCash(e)===1?' · Kasse verm.':empCash(e)===0?' · keine Kasse':''}${e.keepPrev?' 🔁':''}</small>${meta.badges?'<br>'+meta.badges:''}</td>
+      ${days.map(d=>cell(e,d)).join('')}
+      <td><b>${fmtDur(S.creditInMEP?sw+cr:sw)}</b>${!S.creditInMEP&&cr?`<br><small>+${fmtDur(cr)} gut</small>`:''}<br><small>Soll ${e.h?(wt>0?fmtDur(wt)+(isProrated?'*':''):'–'):'–'}</small></td>
+      <td><b>${fmtDur(pmDisp)}</b>${gfbBadge}</td>
+    </tr>`;
+  }).join('');
+
+  const locked=isWeekLocked(wk);
+  const bkWarn=!S.bk?`<span class="pill warn">Noch nie gesichert</span>`:`<span class="pill ok">Gesichert: ${de(S.bk)}</span>`;
+  const tempHint=(isMessengerUri()&&!isHintHidden())?`<div class="wn" style="background:rgba(37,99,235,.12);color:var(--fg);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <span style="flex:1;min-width:180px">📲 <b>Aus Nachricht geöffnet?</b> Speichere die App dauerhaft auf deinem Handy.</span>
+      <div class=row style="margin:0;gap:5px">
+        <button class="sm pri" style="padding:5px 10px;font-size:12.5px" onclick="openSaveApp()">App speichern</button>
+        <button class=sm style="padding:5px 8px;font-size:12.5px" onclick="dismissTempHint()" title="Dauerhaft ausblenden">✕</button>
+      </div>
+    </div>`:'';
+  return`
+    ${tempHint}
+    <div class=row style="gap:6px;flex-wrap:nowrap">
+      <button class=sm onclick="wk=add(wk,-7);render()">◀</button>
+      <b style="flex:1;text-align:center;font-size:15.5px;white-space:nowrap">KW ${kw(th)} · ${dm(days[0])}–${de(days[6])}</b>
+      <button class=sm onclick="wk=add(wk,7);render()">▶</button>
+    </div>
+    <div class=row style="gap:6px;margin:2px 0 6px">
+      ${!isNow?`<button class=sm onclick="wk=mon(new Date());render()">Heute</button>`:''}
+      <button class="sm ${locked?'lock-on':''}" onclick="toggleLock()" title="${locked?'Woche entsperren':'Woche gegen Änderungen fixieren'}">${locked?'🔒 Fixiert':'🔓 Offen'}</button>
+      <button class=sm style="margin-left:auto" onclick="showGuide()" title="Kurzanleitung">?</button>
+    </div>
+    <div class=row>
+      <button class=btn onclick="askGenWeek()">✨ Woche planen</button>
+      <button class="btn sec" onclick="askGenMonth()">🗓️ Monat planen</button>
+    </div>
+    <div class=row>
+      <button class="btn sec" style="padding:10px" onclick="askCopyPrev()">📋 Vorwoche übernehmen</button>
+      <button class="btn sec" style="padding:10px" onclick="planB()">🛟 Plan B (Ersatzplan)</button>
+    </div>
+    <div class=row style="gap:6px;margin:4px 0 8px">
+      <small style="font-weight:700;margin-right:2px">GFB-Einsatz:</small>
+      ${[['short','Kurzschichten (2–3×)'],['full','Ganzer Tag (1×)'],['auto','Flexibel (Mix)']].map(([k,lbl])=>
+        `<button class="sm ${S.gfbMode===k?'pri':''}" style="padding:5px 9px;font-size:12.5px" onclick="S.gfbMode='${k}';sv();render();toast('GFB-Modus: ${lbl}')">${lbl}</button>`
+      ).join('')}
+    </div>
+    ${locked?`<div class="wn" style="background:var(--okbg);color:var(--ok);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><span>🔒 <b>Woche fixiert</b> – vor Generator & versehentlichem Ändern geschützt.</span><button class=sm style="padding:5px 10px;font-size:13px" onclick="toggleLock()">Entsperren</button></div>`:''}
+    ${S.pa&&S.pa[iso(wk)]?`<div class="wn warn"><b>Plan B aktiv</b> – blau umrandet = anders als Plan A.<div class=row style="margin-top:6px"><button class=sm onclick="backA()">Zurück zu Plan A</button><button class="sm pri" onclick="commitPlanB()">Als neuen Plan A übernehmen</button></div></div>`:(()=>{const moNames=[...new Set(S.emps.filter(e=>days.some(d=>maybeOutOf(e.id,d))).map(nm))];return moNames.length?`<div class="wn" style="background:rgba(37,99,235,.10);color:var(--fg)">ℹ️ Evt. Ausfall in dieser Woche: <b>${esc(moNames.join(', '))}</b> (über „Plan B“ als Ersatzplan testbar)</div>`:''})()}
+    <div class=tw>
+      <table class=ui>
+        <tr><th>Name</th>${head}<th>Σ Woche</th><th>Σ Monat</th></tr>
+        ${rows||'<tr><td colspan=10>Noch kein Team angelegt</td></tr>'}
+      </table>
+    </div>
+    <p style="margin:6px 0"><small>P = Pause (Min.) · Tipp auf Namen = Mitarbeiter-Einstellungen · Tipp auf Zelle = Schicht${hasJoinLeave?'<br><span class="emp-tag join">🆕 Türkis = Fängt an ab</span> <span class="emp-tag leave">👋 Violett = Hört auf am</span> (* = anteiliges Wochensoll)':''}</small></p>
+    ${covHTML(days)}
+    ${accHTML(ymCur)}
+    ${rippleHTML(ymCur,iso(wk))}
+    ${w.length?w.map(x=>`<div class="wn ${x[0]}">${x[0]=='bad'?'⛔':'⚠️'} ${esc(x[1])}</div>`).join(''):'<div class="wn ok">✓ Alle Regeln & Abdeckung erfüllt</div>'}
+    <div class=row style="margin-top:10px">
+      <button class=btn onclick="printMEP()">🖨️ Woche drucken / PDF</button>
+      <button class="btn sec" onclick="openBatchPrint()">📚 Sammeldruck</button>
+    </div>
+    <div class=row>
+      <button class="btn sec" style="padding:10px" onclick="shareText()">📱 Kurzplan kopieren</button>
+    </div>
+    <div class="row" style="justify-content:space-between;margin-top:8px;gap:6px">
+      <div>${bkWarn}</div>
+      <div class=row style="margin:0;gap:6px">
+        <button class=sm onclick="openSaveApp()">📲 App speichern</button>
+        <button class=sm onclick="backup()">💾 Backup</button>
+      </div>
+    </div>`;
+}
+
+function askUnlock(actionLabel,onUnlocked){
+  const k=iso(wk),kNum=kw(add(wk,3));
+  window._afterUnlock=onUnlocked||null;
+  show(`<h3>🔒 KW ${kNum} ist fixiert</h3>
+    <p>Diese Woche ist gegen Änderungen gesperrt (z. B. bereits gedruckt). Möchtest du sie zum <b>${esc(actionLabel)}</b> entsperren?</p>
+    <div class=row>
+      <button class=btn onclick="delete S.locks['${k}'];sv();hide();if(window._afterUnlock){const fn=window._afterUnlock;window._afterUnlock=null;fn();}">Entsperren & fortfahren</button>
+      <button class="btn sec" onclick="window._afterUnlock=null;hide()">Abbrechen</button>
+    </div>`);
+}
+
+function laterPlannedKws(curMonday,ym){
+  const out=[],curIso=iso(curMonday);
+  const y=+ym.slice(0,4),m=+ym.slice(5)-1;
+  let cm=mon(new Date(y,m,1,12));
+  const endM=mon(new Date(y,m+1,0,12));
+  while(cm<=endM){
+    const ci=iso(cm);
+    if(ci>curIso){
+      const hasS=[...Array(7)].some((_,i)=>{
+        const d=iso(add(cm,i)),pl=S.plan[d]||{};
+        return Object.keys(pl).some(id=>!unavailOf(id,d));
+      });
+      if(hasS)out.push('KW '+kw(add(cm,3)));
+    }
+    cm=add(cm,7);
+  }
+  return out;
+}
+
+function askGenWeek(){
+  if(isWeekLocked(wk)){askUnlock('Neuplanen',()=>askGenWeek());return;}
+  const days=[...Array(7)].map((_,i)=>iso(add(wk,i)));
+  const th=P(days[3]),mainYm=days[3].slice(0,7);
+  const hasShifts=days.some(ds=>Object.keys(S.plan[ds]||{}).some(id=>!unavailOf(id,ds)));
+  const usesPrev=S.keepPrevAll||S.emps.some(e=>e.keepPrev);
+  const neighborDays=days.filter(d=>d.slice(0,7)!==mainYm&&S.plan[d]&&Object.keys(S.plan[d]).some(id=>!unavailOf(id,d)));
+  const protectYm=(S.protectNeighbor&&neighborDays.length)?mainYm:null;
+  const later=laterPlannedKws(wk,mainYm);
+  if(!hasShifts&&!usesPrev&&!later.length&&!protectYm){gen(0,false,null);return;}
+  const rippleBox=later.length?`<div class="wn warn">⚡ <b>Hinweis:</b> Spätere Wochen im ${MNm[+mainYm.slice(5)-1]} (${later.join(', ')}) sind bereits geplant – deren Monats-Summen sowie 603-€-/Samstags-Grenzen können sich verschieben.</div>`:'';
+  const nbNote=protectYm?`<p><small>🛡️ Geteilte Woche: Bereits geplante Tage aus dem Nachbarmonat (${neighborDays.map(dm).join(', ')}) bleiben geschützt.</small></p>`:'';
+  show(`<h3>${hasShifts?'Wochenplan überschreiben?':'Wochenplan erstellen'}</h3>
+    <p>${hasShifts?'In <b>KW '+kw(th)+' ('+dm(days[0])+'–'+de(days[6])+')</b> sind bereits Schichten eingetragen. ':''}${usesPrev?'Der Vorwochen-Rhythmus ist aktiv'+(S.keepPrevAll?' (für alle)':' (für markierte MA)')+'.':''}</p>
+    ${nbNote}${rippleBox}
+    <button class=btn onclick="hide();gen(0,false,${protectYm?`'${protectYm}'`:'null'})">${usesPrev?'Planen (mit Vorwochen-Rhythmus)':'Ja, neu planen'}</button>
+    ${usesPrev?`<button class="btn sec" onclick="hide();gen(0,true,${protectYm?`'${protectYm}'`:'null'})">Komplett neu mischen (ohne Vorwoche)</button>`:''}
+    ${protectYm?`<button class="btn sec" onclick="hide();gen(0,false,null)">Ganze Woche inkl. Nachbarmonat neu planen</button>`:''}
+    <button class="btn sec" onclick="hide()">Abbrechen</button>`);
+}
+
+function askGenMonth(){
+  const th=add(wk,3),y=th.getFullYear(),m=th.getMonth();
+  const usesPrev=S.keepPrevAll||S.emps.some(e=>e.keepPrev);
+  let lockedCount=0;
+  let cm=mon(new Date(y,m,1,12));
+  const endM=mon(new Date(y,m+1,0,12));
+  while(cm<=endM){if(isWeekLocked(cm))lockedCount++;cm=add(cm,7);}
+  const lockNote=lockedCount?`<div class="wn" style="background:var(--okbg);color:var(--ok)">🔒 ${lockedCount} fixierte Woche(n) in diesem Monat werden automatisch übersprungen.</div>`:'';
+  show(`<h3>Ganzen Monat planen?</h3>
+    <p>Erstellt den Plan für alle offenen Wochen im <b>${MNm[m]} ${y}</b> (inkl. Samstags-Rotation, 11h-Ruhezeit, Minijob-Budget, Warentagen & RLP-Feiertagen).${S.protectNeighbor?' Bereits geplante Tage aus Nachbarmonaten bleiben geschützt.':''}</p>
+    ${lockNote}
+    <button class=btn onclick="hide();genMonth(false)">${usesPrev?'Monat planen (mit Vorwochen-Rhythmus)':'Ja, Monat planen'}</button>
+    ${usesPrev?`<button class="btn sec" onclick="hide();genMonth(true)">Komplett neu mischen (ohne Vorwoche)</button>`:''}
+    <button class="btn sec" onclick="hide()">Abbrechen</button>`);
+}
+
+function planB(){
+  if(isWeekLocked(wk)){askUnlock('Plan B testen',()=>planB());return;}
+  const days=[...Array(7)].map((_,i)=>iso(add(wk,i)));
+  const hasMaybe=S.emps.some(e=>days.some(d=>maybeOutOf(e.id,d)));
+  if(!hasMaybe){
+    toast('Erst unter „Abwesenheit“ einen „Evt. Ausfall“ für diese Woche eintragen');
+    return;
+  }
+  const m=iso(wk);
+  S.pa=S.pa||{};
+  if(!S.pa[m]){
+    const o={};
+    for(let i=0;i<7;i++){
+      const d=iso(add(wk,i));
+      o[d]=JSON.parse(JSON.stringify(S.plan[d]||{}));
+    }
+    S.pa[m]=o;
+  }
+  gen(1);
+}
+function backA(){
+  const m=iso(wk),a=S.pa[m];
+  for(const d in a)S.plan[d]=a[d];
+  delete S.pa[m];sv();render();
+  toast('Zurück zu Plan A');
+}
+function commitPlanB(){
+  delete S.pa[iso(wk)];
+  sv();render();
+  toast('Plan B dauerhaft als neuen Plan A übernommen');
+}
+
+function shareText(){
+  const days=[...Array(7)].map((_,i)=>iso(add(wk,i))),th=P(days[3]);
+  let out=`*Einsatzplan KW ${kw(th)} (${dm(days[0])}–${de(days[6])})*${S.store?' · Filiale '+S.store:''}\n`;
+  days.forEach((ds,i)=>{
+    const oh=openH(ds),h=hol(+ds.slice(0,4))[ds];
+    if(!oh){if(h)out+=`\n*${DN[i]} ${dm(ds)}:* ${h} (geschlossen)`;return;}
+    const pl=S.plan[ds]||{};
+    const items=Object.keys(pl).filter(id=>!unavailOf(id,ds)).map(id=>({e:emp(id),s:shift(ds,pl[id])})).filter(x=>x.e&&x.s).sort((a,b)=>a.s.s-b.s.s);
+    out+=`\n*${DN[i]} ${dm(ds)}:* `+(items.length?items.map(x=>`${nm(x.e)} ${f(x.s.s)}–${f(x.s.e)}`).join(', '):'–');
+  });
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(out).then(()=>toast('Kurzplan für WhatsApp kopiert')).catch(()=>showCopyModal('Kurzplan für WhatsApp',out));
+  }else{
+    showCopyModal('Kurzplan für WhatsApp',out);
+  }
+}
+function showCopyModal(title,txt){
+  show(`<h3>${esc(title)}</h3><textarea id=cpyt readonly style="height:190px">${esc(txt)}</textarea>
+    <div class=row><button class=btn onclick="cpyEl('cpyt')">Kopieren</button><button class="btn sec" onclick="hide()">Schließen</button></div>`);
+}
+function cpyEl(id){
+  const el=$('#'+id);if(!el)return;
+  el.select();el.setSelectionRange(0,99999);
+  try{document.execCommand('copy');toast('In Zwischenablage kopiert');}catch(e){toast('Bitte manuell kopieren');}
+}
+
+/* =====================================================================
+   EXACT 1:1 MEP PRINT RENDERER (NO SVG STRETCH, EXACT COLUMN ALIGNMENT)
+   ===================================================================== */
+function empsForPrint(m,dd){
+  const list=S.emps.filter(e=>dd.some(d=>isEmployed(e.id,d))||monthStats(e,m).worked>0);
+  return list.length?list:S.emps;
+}
+function printMEP(){
+  const days=[...Array(7)].map((_,i)=>iso(add(wk,i)));
+  let html='';
+  [...new Set(days.map(d=>d.slice(0,7)))].forEach(m=>{
+    const dd=days.filter(d=>d.slice(0,7)==m);
+    const es=empsForPrint(m,dd);
+    for(let p=0;p===0||p<es.length;p+=9){
+      html+=mepPg(m,dd,days,es.slice(p,p+9));
+    }
+  });
+  $('#pr').innerHTML=html;
+  setTimeout(()=>window.print(),60);
+}
+
+/* Batch Print (Full Month or Custom Number of Weeks) with Planning Status Check */
+function openBatchPrint(){
+  const th=add(wk,3);
+  BP={
+    mode:'month',
+    year:th.getFullYear(),
+    month:th.getMonth()+1,
+    startWk:iso(wk),
+    numWeeks:4,
+    skipEmpty:false
+  };
+  renderBatchModal();
+}
+
+function weekPrintStatus(mondayDate,onlyYm){
+  const allDays=[...Array(7)].map((_,i)=>iso(add(mondayDate,i)));
+  const relDays=onlyYm?allDays.filter(d=>d.slice(0,7)===onlyYm):allDays;
+  const openDays=relDays.filter(d=>!!openH(d));
+  const wkIso=iso(mondayDate);
+  const kwNum=kw(P(allDays[3]));
+  const hasPlanB=!!(S.pa&&S.pa[wkIso]);
+  const locked=isWeekLocked(mondayDate);
+  const months=onlyYm?[onlyYm]:[...new Set(allDays.map(d=>d.slice(0,7)))];
+  const pages=months.reduce((sum,m)=>{
+    const dd=allDays.filter(d=>d.slice(0,7)===m);
+    return sum+Math.max(1,Math.ceil(empsForPrint(m,dd).length/9));
+  },0);
+
+  if(!openDays.length){
+    const hasHol=relDays.some(d=>!!hol(+d.slice(0,4))[d]);
+    return{
+      wkIso,kwNum,allDays,relDays,months,pages,hasPlanB,locked,
+      status:'closed',openCnt:0,plannedDays:0,fullDays:0,bads:0,
+      label:hasHol?'Nur Feiertag / geschlossen':'Geschlossen',
+      detail:dm(relDays[0])+(relDays.length>1?'–'+dm(relDays[relDays.length-1]):''),
+      skipAuto:true
+    };
+  }
+
+  let plannedDays=0,fullDays=0,bads=0;
+  for(const ds of openDays){
+    const oh=openH(ds),pl=S.plan[ds]||{};
+    let cnt=0,openK=0,closeK=0;
+    for(const id in pl){
+      if(unavailOf(id,ds))continue;
+      const e=emp(id);if(!e)continue;
+      const s=shift(ds,pl[id]);if(!s)continue;
+      cnt++;
+      if(e.key&&s.s<=oh[0]+.01)openK=1;
+      if(e.key&&s.e>=oh[1]-.01)closeK=1;
+      bads+=check(e,ds,pl[id]).H.length;
+    }
+    if(cnt>0)plannedDays++;
+    const extraF=isWareDay(ds)?(S.wareExtraF||0):0;
+    const need=(oh[1]-oh[0]<=6?S.nK:S.nF+S.nS)+extraF;
+    if(cnt>=need)fullDays++;
+    if(cnt>0){
+      if(!openK)bads++;
+      if(!closeK)bads++;
+      const sch=daySchedule(ds);
+      if(sch.gaps.length)bads++;
+      if(sch.cashGaps.some(t=>!sch.gaps.includes(t)))bads++;
+    }
+  }
+
+  let status='ok',label='Vollständig';
+  if(plannedDays===0){
+    status='empty';
+    label='Nicht geplant';
+  }else if(plannedDays<openDays.length){
+    status='partial';
+    label=`Teilweise (${plannedDays}/${openDays.length} Tage)`;
+  }else if(fullDays<openDays.length){
+    status='partial';
+    label=`Unterbesetzt (${fullDays}/${openDays.length} voll)`;
+  }else if(bads>0){
+    status='conflict';
+    label=`${bads} Regelverstoß${bads>1?'e':''}`;
+  }
+
+  return{
+    wkIso,kwNum,allDays,relDays,months,pages,hasPlanB,locked,
+    status,openCnt:openDays.length,plannedDays,fullDays,bads,label,
+    detail:dm(relDays[0])+'–'+de(relDays[relDays.length-1]),
+    skipAuto:false
+  };
+}
+
+function getBatchEntries(){
+  if(!BP)return[];
+  const list=[];
+  if(BP.mode==='month'){
+    const y=Math.max(2020,Math.min(2099,+BP.year||new Date().getFullYear()));
+    const m=Math.max(1,Math.min(12,+BP.month||1));
+    const ym=y+'-'+String(m).padStart(2,'0');
+    const first=new Date(y,m-1,1,12),last=new Date(y,m,0,12);
+    let cm=mon(first);
+    const endM=mon(last);
+    while(cm<=endM){
+      list.push(weekPrintStatus(cm,ym));
+      cm=add(cm,7);
+    }
+  }else{
+    const n=Math.max(1,Math.min(12,Math.floor(+BP.numWeeks||1)));
+    let cm=mon(P(BP.startWk));
+    for(let i=0;i<n;i++){
+      list.push(weekPrintStatus(cm,null));
+      cm=add(cm,7);
+    }
+  }
+  return list;
+}
+
+function renderBatchModal(){
+  if(!BP)return;
+  const entries=getBatchEntries();
+  const active=entries.filter(x=>!x.skipAuto&&!(BP.skipEmpty&&x.status==='empty'));
+  const totalPages=active.reduce((s,x)=>s+x.pages,0);
+  const emptyCnt=active.filter(x=>x.status==='empty').length;
+  const partialCnt=active.filter(x=>x.status==='partial').length;
+  const confCnt=active.filter(x=>x.status==='conflict').length;
+  const pbCnt=active.filter(x=>x.hasPlanB).length;
+  const anyIssue=emptyCnt+partialCnt+confCnt+pbCnt>0;
+
+  const modeCtrl=BP.mode==='month'
+    ? `<div class=row>
+        <label style="flex:2">Monat<select onchange="BP.month=+this.value;renderBatchModal()">${MNm.map((n,i)=>`<option value="${i+1}" ${BP.month===i+1?'selected':''}>${n}</option>`).join('')}</select></label>
+        <label style="flex:1">Jahr<input type=number min=2020 max=2099 value="${BP.year}" onchange="BP.year=Math.max(2020,Math.min(2099,+this.value||2026));renderBatchModal()"></label>
+      </div>`
+    : `<div class=row style="gap:6px;margin-top:8px">
+        <button class=sm onclick="BP.startWk=iso(add(P(BP.startWk),-7));renderBatchModal()">◀</button>
+        <div style="flex:1;text-align:center;font-size:14.5px"><b>Ab KW ${kw(add(P(BP.startWk),3))}</b><br><small>${dm(BP.startWk)}–${de(iso(add(P(BP.startWk),6)))}</small></div>
+        <button class=sm onclick="BP.startWk=iso(add(P(BP.startWk),7));renderBatchModal()">▶</button>
+      </div>
+      <p class=l style="margin-top:10px">Anzahl Wochen</p>
+      <div class=chips>
+        ${[2,3,4,6,8].map(n=>`<button class="chip ${BP.numWeeks===n?'on':''}" style="padding:7px 12px;font-size:14px" onclick="BP.numWeeks=${n};renderBatchModal()">${n} Wo.</button>`).join('')}
+        <input type=number min=1 max=12 value="${BP.numWeeks}" style="width:74px;padding:7px 8px;font-size:14px" onchange="BP.numWeeks=Math.max(1,Math.min(12,Math.floor(+this.value||1)));renderBatchModal()">
+      </div>`;
+
+  const warnParts=[];
+  if(emptyCnt)warnParts.push(`<b>${emptyCnt} Woche${emptyCnt>1?'n':''}</b> nicht geplant`);
+  if(partialCnt)warnParts.push(`<b>${partialCnt} Woche${partialCnt>1?'n':''}</b> nur teilweise geplant / unterbesetzt`);
+  if(confCnt)warnParts.push(`<b>${confCnt} Woche${confCnt>1?'n':''}</b> mit Regelverstößen`);
+  if(pbCnt)warnParts.push(`<b>${pbCnt} Woche${pbCnt>1?'n':''}</b> mit aktivem Plan B`);
+
+  const hasEmptyInRange=entries.some(x=>!x.skipAuto&&x.status==='empty');
+
+  const rowsHtml=entries.map(x=>{
+    const skipped=x.skipAuto||(BP.skipEmpty&&x.status==='empty');
+    const pCls=x.status==='ok'?'ok':x.status==='empty'||x.status==='conflict'?'bad':x.status==='partial'?'warn':'';
+    const ic=x.status==='ok'?'✓ ':x.status==='empty'?'⛔ ':x.status==='partial'||x.status==='conflict'?'⚠️ ':'';
+    return`<div class="bp-row ${skipped?'bp-skip':''}">
+      <div style="flex:1;min-width:0">
+        <b>KW ${x.kwNum}</b> <small>${x.detail}${x.locked?' · 🔒':''}${x.hasPlanB?' · Plan B':''}${x.pages>1&&!skipped?' · '+x.pages+' S.':''}</small><br>
+        <span class="pill ${pCls}" style="margin:2px 0 0 0">${ic}${esc(x.label)}</span>
+      </div>
+      ${!x.skipAuto?`<button class=sm style="padding:5px 9px;font-size:12.5px" onclick="jumpWeek('${x.wkIso}')" title="Zu KW ${x.kwNum} springen">→</button>`:'<small>überspr.</small>'}
+    </div>`;
+  }).join('');
+
+  show(`<h3>📚 Sammeldruck (MEP-PDF)</h3>
+    <div class=chips>
+      <button class="chip ${BP.mode==='month'?'on':''}" style="flex:1" onclick="BP.mode='month';renderBatchModal()">Ganzer Monat</button>
+      <button class="chip ${BP.mode==='weeks'?'on':''}" style="flex:1" onclick="BP.mode='weeks';renderBatchModal()">Anzahl Wochen</button>
+    </div>
+    ${modeCtrl}
+    ${hasEmptyInRange?`<label class=ck style="margin:10px 0 4px"><input type=checkbox ${BP.skipEmpty?'checked':''} onchange="BP.skipEmpty=this.checked;renderBatchModal()"> Ungeplante Wochen überspringen</label>`:''}
+    <p class=l style="margin-top:10px">Vorschau (${active.length} Woche${active.length===1?'':'n'} · ${totalPages} DIN-A4-Seite${totalPages===1?'':'n'})</p>
+    <div>${rowsHtml}</div>
+    ${anyIssue?`<div class="wn ${emptyCnt||confCnt?'bad':'warn'}" style="margin-top:8px">⚠️ <b>Prüfhinweis:</b> ${warnParts.join(', ')}.</div>`:(active.length?`<div class="wn ok" style="margin-top:8px">✓ Alle ausgewählten Wochen sind vollständig geplant</div>`:`<div class="wn warn" style="margin-top:8px">Keine druckbaren Wochen ausgewählt.</div>`)}
+    <div class=row style="margin-top:10px">
+      <button class=btn ${totalPages?'':'disabled style="opacity:.45"'} onclick="tryBatchPrint()">🖨️ ${totalPages} Seite${totalPages===1?'':'n'} drucken / PDF</button>
+      <button class="btn sec" onclick="hide()">Schließen</button>
+    </div>`);
+}
+
+function tryBatchPrint(){
+  const entries=getBatchEntries();
+  const active=entries.filter(x=>!x.skipAuto&&!(BP.skipEmpty&&x.status==='empty'));
+  if(!active.length){toast('Keine Wochen zum Drucken ausgewählt');return;}
+  const issues=active.filter(x=>x.status!=='ok'||x.hasPlanB);
+  if(issues.length){
+    const totalPages=active.reduce((s,x)=>s+x.pages,0);
+    const listHtml=issues.map(x=>`<li><b>KW ${x.kwNum}</b> (${x.detail}): ${esc(x.label)}${x.hasPlanB?' · Plan B aktiv':''}</li>`).join('');
+    show(`<h3>⚠️ Unvollständige Wochen drucken?</h3>
+      <p>Im Sammeldruck (${totalPages} Seite${totalPages===1?'':'n'}) gibt es noch offene Hinweise:</p>
+      <ul style="margin:6px 0 12px;padding-left:18px;font-size:13.5px;line-height:1.45">${listHtml}</ul>
+      <div class=row>
+        <button class=btn onclick="execBatchPrint()">Trotzdem drucken</button>
+        <button class="btn sec" onclick="renderBatchModal()">Zurück</button>
+      </div>`);
+    return;
+  }
+  execBatchPrint();
+}
+
+function execBatchPrint(){
+  const entries=getBatchEntries();
+  const active=entries.filter(x=>!x.skipAuto&&!(BP.skipEmpty&&x.status==='empty'));
+  if(!active.length)return;
+  let html='';
+  active.forEach(x=>{
+    x.months.forEach(m=>{
+      const dd=x.allDays.filter(d=>d.slice(0,7)===m);
+      const es=empsForPrint(m,dd);
+      for(let p=0;p===0||p<es.length;p+=9){
+        html+=mepPg(m,dd,x.allDays,es.slice(p,p+9));
+      }
+    });
+  });
+  $('#pr').innerHTML=html;
+  hide();
+  setTimeout(()=>window.print(),80);
+}
+
+function cv(e,d,k,m){
+  if(d.slice(0,7)!=m)return'';
+  if(outOfEmp(e.id,d))return'';
+  const oh=openH(d);
+  if(!oh)return k?'':(hol(+d.slice(0,4))[d]?'Feiertag':'');
+  const a=absOf(e.id,d);
+  if(a)return k?'':a;
+  const c=(S.plan[d]||{})[e.id],s=c&&shift(d,c);
+  if(!s)return'';
+  return[f(s.s),s.p?Math.round(s.p*60):'',f(s.e),hm(s.n)][k];
+}
+
+function mepPg(m,dd,days,es){
+  const to=dd[dd.length-1];
+  const L=['Beginn','Pause','Ende','Summe / Tag'];
+
+  let t=`<div class="pg">
+    <div class="band">
+      <span class="bt">Mitarbeiter-Einsatz-Planung (MEP)</span>
+      <span class="fl">Filiale:</span>
+      <div class="fb">${esc(S.store)}</div>
+    </div>
+
+    <div class="hl">
+      <span style="left:0">Monat/ Jahr</span>
+      <u style="left:19mm;width:49mm">${MNm[+m.slice(5)-1]} ${m.slice(0,4)}</u>
+      <span style="left:90mm">Woche vom:</span>
+      <u style="left:109.7mm;width:39.4mm">${de(dd[0])}</u>
+      <span style="left:162mm">bis:</span>
+      <u style="left:168.8mm;width:36.5mm">${de(to)}</u>
+      <span class="aufb" style="left:208.2mm"><b>Aufbewahrung in der Filiale:</b> 2 Jahre</span>
+    </div>
+
+    <table class="mt">
+      <colgroup>
+        <col style="width:33mm">
+        <col style="width:15.5mm">
+        <col style="width:19.5mm">
+        <col style="width:22mm">
+        ${'<col style="width:19.7mm">'.repeat(7)}
+        <col style="width:2.1mm">
+        <col style="width:23.5mm">
+        <col style="width:18.5mm">
+      </colgroup>
+      <tr>
+        <th rowspan="3">Name, Vorname</th>
+        <th rowspan="3">Funktion</th>
+        <th rowspan="3">Plan / Woche</th>
+        <th class="l"><div class="vc vl">Wochentag</div></th>
+        ${DNF.map((x,idx)=>`<th${idx===6?' class="day-last"':''}><div class="vc">${x}</div></th>`).join('')}
+        <th class="n" rowspan="3"></th>
+        <th class="sb sb-l" rowspan="3">Summe /<br>Woche</th>
+        <th class="sb sb-r" rowspan="3">Summe /<br>Monat</th>
+      </tr>
+      <tr>
+        <th class="l"><div class="vc vl">Datum</div></th>
+        ${days.map((d,idx)=>`<th class="w${idx===6?' day-last':''}"><div class="vc">${d.slice(0,7)==m?dm(d)+d.slice(2,4):''}</div></th>`).join('')}
+      </tr>
+      <tr>
+        <th class="l"><div class="vc vl">Warentag</div></th>
+        ${days.map((d,idx)=>`<th class="w${idx===6?' day-last':''}"><div class="vc">${d.slice(0,7)==m&&isWareDay(d)?'X':''}</div></th>`).join('')}
+      </tr>`;
+
+  for(let i=0;i<9;i++){
+    const e=es[i];
+    let ws=0,ms=0;
+    if(e){
+      dd.forEach(d=>ws+=net(e.id,d)+(S.creditInMEP?creditOf(e,d):0));
+      const lastD=+to.slice(8);
+      for(let day=1;day<=lastD;day++){
+        const dStr=m+'-'+String(day).padStart(2,'0');
+        ms+=net(e.id,dStr)+(S.creditInMEP?creditOf(e,dStr):0);
+      }
+    }
+    for(let k=0;k<4;k++){
+      const rCls=(k===0?'bs':'')+(i===8&&k===3?' be':'');
+      t+=`<tr${rCls?` class="${rCls.trim()}"`:''}>`;
+      if(k===0){
+        const bBot=i===8?' be-bot':'';
+        t+=`<td class="nmc${bBot}" rowspan="4">${e?esc(nm(e)):''}</td>`;
+        t+=`<td class="m${bBot}" rowspan="4">${e?esc(e.f):''}</td>`;
+        t+=`<td class="m${bBot}" rowspan="4">${e?hm(e.h||0):''}</td>`;
+      }
+      t+=`<td class="lb"><div class="vc vl">${L[k]}</div></td>`;
+      t+=days.map((d,idx)=>`<td${idx===6?' class="day-last"':''}><div class="vc">${e?esc(cv(e,d,k,m)):''}</div></td>`).join('');
+      if(k===0)t+=`<td class="n" rowspan="4"></td>`;
+      if(k===0||k===3){
+        t+=`<td class="n"></td><td class="n"></td>`;
+      }else if(k===1){
+        t+=`<td class="bx bx-l" rowspan="2">${e&&ws?hm(ws):''}</td><td class="bx bx-r" rowspan="2">${e&&ms?hm(ms):''}</td>`;
+      }
+      t+=`</tr>`;
+    }
+  }
+
+  t+=`</table>
+    <div class="ft">
+      <span style="left:0;top:4.0mm;font-weight:700">Pausenzeiten:</span>
+      <div class="ft-pgrid">
+        <span class="pr-l">bis 6 Stunden</span><span class="pr-c">:</span><span class="pr-r">keine Pause</span>
+        <span class="pr-l">mehr als 6 Stunden</span><span class="pr-c">:</span><span class="pr-r">${S.pause} Minuten</span>
+      </div>
+
+      <span style="left:109.7mm;top:4.0mm;font-weight:700">Abwesenheiten:</span>
+      <span style="left:149.1mm;top:4.0mm">Feiertag</span>
+      <span style="left:149.1mm;top:8.0mm">Freizeit</span>
+      <span style="left:168.8mm;top:4.0mm">Krankheit (AU-Bescheinigung)</span>
+      <span style="left:168.8mm;top:8.0mm">Schule (Führungsnachwuchskraft)</span>
+      <span style="left:230.0mm;top:4.0mm">Urlaub</span>
+
+      <span style="left:0;top:14.2mm"><b>Anwesenheiten:</b>&nbsp;&nbsp;Arbeitszeitbeginn bis Arbeitszeitende inkl. Pausenzeiten und die Tagesstunden eintragen. Am Ende der Woche: wöchentliche und monatliche Summe eintragen.</span>
+      <span class="ft-stand">Stand: Oktober 2014</span>
+    </div>
+  </div>`;
+  return t;
+}
+
+/* Cell Picker & Substitute Helper */
+function helper(ds,id){
+  const c=(S.plan[ds]||{})[id];
+  if(!c)return'';
+  const prevB=B;
+  if(isPlanBActive())B=1;
+  const l=S.emps
+    .filter(e=>e.id!=id&&!(S.plan[ds]||{})[e.id])
+    .map(e=>({e,r:fit(e,ds,c,null)}))
+    .filter(x=>x.r)
+    .sort((a,b)=>a.r.w-b.r.w||(wkEff(a.e,ds)/(a.e.h||1)-wkEff(b.e,ds)/(b.e.h||1)))
+    .map(x=>`<button class=chip onclick="swap('${ds}',${id},${x.e.id},'${x.r.code}')">${esc(nm(x.e))} <small>(${fmtDur(x.r.n,true)})${x.r.w?' ⚠️':''}</small></button>`)
+    .join('');
+  B=prevB;
+  return`<p class=l>Wer kann einspringen?</p><div class=chips>${l||'<small>Niemand frei, der laut Regeln darf</small>'}</div>`;
+}
+function swap(ds,a,b,c){
+  delete S.plan[ds][a];
+  S.plan[ds][b]=c;
+  sv();hide();
+  toast('Schicht übergeben');
+}
+function pick(ds,id){
+  if(isWeekLocked(ds)){askUnlock('Schicht ändern',()=>pick(ds,id));return;}
+  const e=emp(id),oh=openH(ds),short=oh[1]-oh[0]<=6;
+  const presets=short
+    ? [['K','Kurzschicht']]
+    : [['F','Frühschicht'],['S','Spätschicht'],['c'+oh[0]+'-'+Math.min(oh[1],oh[0]+5),'Vormittag (5h)'],['c'+Math.max(oh[0],oh[1]-5)+'-'+oh[1],'Nachmittag (5h)'],['c'+Math.max(oh[0],oh[1]-3)+'-'+oh[1],'Abend-Aushilfe (3h)']];
+  const curCode=(S.plan[ds]||{})[id];
+  const curSh=curCode&&shift(ds,curCode);
+  show(`<h3>${esc(nm(e))} · ${DN[wdOf(ds)]} ${dm(ds)}</h3>
+    <div class=chips>${presets.map(([c,lbl])=>{
+      const x=shift(ds,c);if(!x)return'';
+      return`<button class="chip ${curCode===c?'on':''}" style="flex:1 1 46%" onclick="setC('${ds}',${id},'${c}')"><b>${lbl}</b><br><small style="color:inherit;opacity:.85">${f(x.s)}–${f(x.e)} (${x.n}h)</small></button>`;
+    }).join('')}</div>
+    <p class=l>Eigene Zeit</p>
+    <div class=row>
+      <input id=cs type=time value="${curSh?h2t(curSh.s):'09:00'}" style="flex:1"> –
+      <input id=ce type=time value="${curSh?h2t(curSh.e):'14:00'}" style="flex:1">
+      <button class="sm pri" onclick="setCu('${ds}',${id})">OK</button>
+    </div>
+    <button class="btn sec" style="margin-top:10px" onclick="setC('${ds}',${id},'')">Frei / keine Schicht</button>
+    ${helper(ds,id)}`);
+}
+function setC(ds,id,c){
+  S.plan[ds]=S.plan[ds]||{};
+  if(c)S.plan[ds][id]=c;else delete S.plan[ds][id];
+  sv();hide();
+}
+function setCu(ds,id){
+  const a=t2h($('#cs').value),b=t2h($('#ce').value);
+  if(b>a)setC(ds,id,'c'+a+'-'+b);
+  else toast('Endzeit muss nach Startzeit liegen');
+}
+
+/* Team View & Rules Editor */
+function openEmp(id){
+  cur=emp(id);
+  if(cur)emOpen();
+}
+function teamV(){
+  return`<h2>Team (${S.emps.length})</h2>
+    ${S.emps.map(e=>`<div class="card cs" onclick="openEmp(${e.id})">
+      <b>${esc(nm(e))}</b>${empStart(e.id)?' <span class="emp-tag join">🆕 ab '+de(empStart(e.id))+'</span>':''}${empEnd(e.id)?' <span class="emp-tag leave">👋 bis '+de(empEnd(e.id))+'</span>':''}
+      <small>${esc(e.k)}${e.n?' · '+esc(e.n):''} · ${esc(e.f)} · Soll ${fmtDur(e.h||0,true)}${e.gfb?' · Minijob ('+(e.wage||0)+'€/h)':''}${(e.gfb||e.f==='GFB')&&e.gfbMode?' · '+GFB_MODES[e.gfbMode]:''}${e.key==1?' · 🔑':e.key==2?' · 🗝️ Notfall':''}${empCash(e)===1?' · Kasse vermeiden':empCash(e)===0?' · Keine Kassenkraft':''}${e.satMax!==''&&e.satMax!==null&&e.satMax!==undefined?' · max '+e.satMax+' Sa':''}${e.keepPrev?' · 🔁 Vorwoche':''}</small>
+      <br><small>${e.rules.length?e.rules.map(r=>describe(r)).join(' · '):'Keine Einschränkungen'}</small>
+    </div>`).join('')}
+    <button class=btn onclick="cur={id:S.nid++,k:'MA'+S.nid,n:'',f:'TZ',h:20,key:0,cash:2,satMax:'',keepPrev:0,rules:[]};S.emps.push(cur);sv();emOpen()">+ Mitarbeiter hinzufügen</button>`;
+}
+function emOpen(){
+  const e=cur;
+  const sollField=S.timeFmt==='dec'
+    ? `<label style="flex:1">Soll / Woche (Dezimal)<input type=number step=.05 value="${+(e.h||0).toFixed(2)}" oninput="cur.h=+this.value||0;sv()" onchange="emOpen()"><small>= ${hm(e.h||0)} Std:Min</small></label>`
+    : `<label style="flex:1">Soll / Woche (Std:Min)<input type=text inputmode=decimal placeholder="z. B. 22:30" value="${hm(e.h||0)}" onchange="cur.h=parseDur(this.value);sv();emOpen()"><small>= ${fmtDec(e.h||0)} Dezimal-Std.</small></label>`;
+  const stD=empStart(e.id),enD=empEnd(e.id);
+  const empPeriodBox=(stD||enD)?`<div style="margin:-4px 0 8px">${stD?`<span class="pill join" style="margin:0 4px 0 0">🆕 Fängt an ab ${de(stD)}</span>`:''}${enD?`<span class="pill leave" style="margin:0">👋 Hört auf am ${de(enD)}</span>`:''} <small>(änderbar unter Abwesenheit)</small></div>`:'';
+  show(`<h3>${esc(nm(e)||'Neu')}</h3>${empPeriodBox}
+    <div class=row>
+      <label style="flex:1">Kürzel<input value="${esc(e.k)}" oninput="cur.k=this.value;sv()"></label>
+      <label style="flex:1">Klarname (optional)<input value="${esc(e.n)}" oninput="cur.n=this.value;sv()"></label>
+    </div>
+    <div class=row>
+      <label style="flex:1">Funktion<select onchange="cur.f=this.value;if(this.value==='GFB'&&!cur.gfb){cur.gfb=1;if(!cur.wage)cur.wage=13.9;}sv();emOpen()">${FN.map(x=>`<option ${x==e.f?'selected':''}>${x}</option>`).join('')}</select></label>
+      ${sollField}
+    </div>
+    <label>Schlüsselkraft (öffnen/schließen)
+      <select onchange="cur.key=+this.value;sv()">
+        <option value=0 ${!e.key?'selected':''}>Nein</option>
+        <option value=1 ${e.key==1?'selected':''}>Ja (erste Wahl)</option>
+        <option value=2 ${e.key==2?'selected':''}>Nur im Notfall (niedrige Priorität)</option>
+      </select>
+    </label>
+    <label>Kassenregel
+      <select onchange="cur.cash=+this.value;sv()">
+        <option value=2 ${empCash(e)===2?'selected':''}>Kassenkraft (Standard)</option>
+        <option value=1 ${empCash(e)===1?'selected':''}>Kasse vermeiden (nur im Notfall)</option>
+        <option value=0 ${empCash(e)===0?'selected':''}>Keine Kassenkraft</option>
+      </select>
+    </label>
+    <label>Eigene Max. Samstage / Monat (optional)
+      <input type=number min=0 max=5 placeholder="Standard (${S.satMax} Sa)" value="${e.satMax!==''&&e.satMax!==null&&e.satMax!==undefined?e.satMax:''}" oninput="cur.satMax=this.value===''?'':Math.max(0,Math.min(5,Math.floor(+this.value||0)));sv()">
+      <small>Leer = Standard (${S.satMax} Sa) · z. B. 0 für nie samstags oder 4–5 für Samstags-Aushilfe</small>
+    </label>
+    <label class=ck><input type=checkbox ${e.keepPrev?'checked':''} onchange="cur.keepPrev=this.checked?1:0;sv()"> Vorwochen-Rhythmus beim Planen beibehalten</label>
+    <label class=ck><input type=checkbox ${e.gfb?'checked':''} onchange="cur.gfb=this.checked?1:0;sv();emOpen()"> Minijob / GFB (Verdienstgrenze ${S.cap} €)</label>
+    ${e.gfb?`<label>Stundenlohn in €<input type=number step=.01 value="${e.wage||''}" oninput="cur.wage=+this.value||0;sv()"></label>`:''}
+    ${(e.gfb||e.f==='GFB')?`<label>Einsatzart für diesen GFB
+      <select onchange="cur.gfbMode=this.value;sv()">
+        <option value="" ${!e.gfbMode?'selected':''}>Standard (${GFB_MODES[S.gfbMode||'short']})</option>
+        <option value="short" ${e.gfbMode==='short'?'selected':''}>Immer Kurzschichten (2–3× / Woche)</option>
+        <option value="full" ${e.gfbMode==='full'?'selected':''}>Immer Ganzer Tag (1× / Woche)</option>
+        <option value="auto" ${e.gfbMode==='auto'?'selected':''}>Flexibel (Mix je nach Bedarf)</option>
+      </select>
+    </label>`:''}
+    <p class=l>Regeln & Einschränkungen</p>
+    ${e.rules.map((r,i)=>`<div class="rule ${r.off?'off':''}">${esc(describe(r))}
+      <div class=row>
+        <button class=sm onclick="ruleOpen(${i})">Ändern</button>
+        <button class=sm onclick="cur.rules[${i}].off=cur.rules[${i}].off?0:1;sv();emOpen()">${r.off?'Aktivieren':'Pausieren'}</button>
+        <button class=sm onclick="cur.rules.splice(${i},1);sv();emOpen()">Löschen</button>
+      </div></div>`).join('')||'<small>Keine Regeln hinterlegt</small>'}
+    <button class=btn onclick="ruleOpen(-1)">+ Regel hinzufügen</button>
+    <div class=row>
+      <button class="btn sec" onclick="hide()">Fertig</button>
+      <button class="btn danger" onclick="askDelEmp()">Löschen</button>
+    </div>`);
+}
+function askDelEmp(){
+  show(`<h3>${esc(nm(cur))} wirklich löschen?</h3>
+    <div class=row>
+      <button class=btn onclick="S.emps=S.emps.filter(x=>x!=cur);sv();hide();toast('Mitarbeiter gelöscht')">Ja, löschen</button>
+      <button class="btn sec" onclick="emOpen()">Abbrechen</button>
+    </div>`);
+}
+function ruleOpen(i){
+  RI=i;
+  RD=i<0?{days:[],win:[[9,14]],t:'no',from:'',to:'',off:0}:JSON.parse(JSON.stringify(cur.rules[i]));
+  ruleRe();
+}
+function ruleRe(){
+  const r=RD;
+  show(`<h3>${RI<0?'Neue Regel':'Regel ändern'}</h3>
+    <p style="margin:4px 0"><i>${r.days.length?esc(describe(r)):'Bitte Tage wählen…'}</i></p>
+    <p class=l>1 · Welche Tage?</p>
+    <div class=chips>
+      ${DN.map((d,i)=>`<button class="chip ${r.days.includes(i)?'on':''}" onclick="RD.days=RD.days.includes(${i})?RD.days.filter(x=>x!=${i}):[...RD.days,${i}].sort((a,b)=>a-b);ruleRe()">${d}</button>`).join('')}
+      <button class=chip onclick="RD.days=[0,1,2,3,4,5,6];ruleRe()">Ganze Woche</button>
+    </div>
+    <p class=l>2 · Schnellauswahl</p>
+    <div class=chips>${PR.map(p=>`<button class=chip onclick="RD.t='${p[1]}';RD.win=JSON.parse('${JSON.stringify(p[2])}');ruleRe()">${p[0]}</button>`).join('')}</div>
+    <p class=l>Oder eigene Uhrzeiten</p>
+    ${r.win.map((w,i)=>`<div class=row>
+      <input type=time value="${h2t(w[0])}" onchange="RD.win[${i}][0]=t2h(this.value);ruleRe()" style="flex:1"> –
+      <input type=time value="${h2t(w[1])}" onchange="RD.win[${i}][1]=t2h(this.value);ruleRe()" style="flex:1">
+      <button class=sm onclick="RD.win.splice(${i},1);ruleRe()">✕</button>
+    </div>`).join('')}
+    <button class=sm onclick="RD.win.push([9,14]);ruleRe()">+ weiteres Zeitfenster</button>
+    <p class=l>3 · Art</p>
+    <div class=chips>${[['no','Kann nicht'],['only','Kann nur'],['pref','Möchte lieber nicht'],['like','Möchte lieber']].map(t=>`<button class="chip ${r.t==t[0]?'on':''}" onclick="RD.t='${t[0]}';ruleRe()">${t[1]}</button>`).join('')}</div>
+    <p class=l>Gültig (optional)</p>
+    <div class=row>
+      <label style="flex:1">von<input type=date value="${r.from}" onchange="RD.from=this.value;ruleRe()"></label>
+      <label style="flex:1">bis<input type=date value="${r.to}" onchange="RD.to=this.value;ruleRe()"></label>
+    </div>
+    <div class=row>
+      <button class=btn onclick="ruleSave()">Speichern</button>
+      <button class="btn sec" onclick="emOpen()">Abbrechen</button>
+    </div>`);
+}
+function ruleSave(){
+  if(!RD.days.length||!RD.win.length){toast('Bitte Tage und mindestens ein Zeitfenster wählen');return;}
+  if(RI<0)cur.rules.push(RD);else cur.rules[RI]=RD;
+  sv();emOpen();
+}
+
+/* Absences View */
+function absV(){
+  const t=iso(new Date());
+  if(!absDraft.from)absDraft.from=t;
+  if(!absDraft.to)absDraft.to=t;
+  if(!absDraft.emp&&S.emps[0])absDraft.emp=String(S.emps[0].id);
+  const isSingle=absDraft.type==='Eintritt'||absDraft.type==='Austritt';
+  const singleLbl=absDraft.type==='Eintritt'?'Erster Arbeitstag (fängt an ab)':'Letzter Arbeitstag (hört auf am)';
+  const hintTxt=absDraft.type==='Eintritt'
+    ?'<b>🆕 Fängt an ab:</b> Vor diesem Datum wird die Person nicht eingeplant, im Web-Plan <b style="color:#0f766e">türkis</b> markiert und das Wochen-/Monatssoll anteilig berechnet.'
+    :absDraft.type==='Austritt'
+    ?'<b>👋 Hört auf am:</b> Nach diesem letzten Arbeitstag wird die Person nicht mehr eingeplant, im Web-Plan <b style="color:#7e22ce">violett</b> markiert und das Wochen-/Monatssoll anteilig gekürzt.'
+    :'Tipp: <b>Evt. Ausfall (nur Plan B)</b> lässt die Person im Plan A weiterarbeiten. <b>Fängt an ab</b> / <b>Hört auf am</b> steuern Ein- & Austritt mit Farbcodierung im Plan.';
+
+  const dateInputs=isSingle
+    ? `<label>${singleLbl}<input id=af type=date value="${absDraft.from}" onchange="absDraft.from=this.value;absDraft.to=this.value"></label>`
+    : `<div class=row>
+        <label style="flex:1">von<input id=af type=date value="${absDraft.from}" onchange="absDraft.from=this.value;if(absDraft.to<this.value){absDraft.to=this.value;const el=$('#aT');if(el)el.value=this.value;}"></label>
+        <label style="flex:1">bis<input id=aT type=date value="${absDraft.to}" onchange="absDraft.to=this.value"></label>
+      </div>`;
+
+  return`<h2>Abwesenheiten & Ein-/Austritt</h2>
+    <div class=card>
+      <label>Mitarbeiter<select id=ae onchange="absDraft.emp=this.value">${S.emps.map(e=>`<option value=${e.id} ${String(e.id)===String(absDraft.emp)?'selected':''}>${esc(nm(e))}</option>`).join('')}</select></label>
+      <label>Art<select id=at onchange="absDraft.type=this.value;render()">${AB_OPT.map(([v,lbl])=>`<option value="${v}" ${absDraft.type===v?'selected':''}>${lbl}</option>`).join('')}</select></label>
+      ${dateInputs}
+      <button class=btn onclick="absAdd()">Eintragen</button>
+      <small style="display:block;margin-top:4px">${hintTxt}</small>
+    </div>
+    ${S.abs.map((a,i)=>{
+      const isPB=a.type==='Evt. Ausfall',isJoin=a.type==='Eintritt',isLeave=a.type==='Austritt';
+      const badge=isPB?'<span class="pill info" style="margin-left:0">Plan B · Evt. Ausfall</span>'
+        :isJoin?'<span class="pill join" style="margin-left:0">🆕 Fängt an ab</span>'
+        :isLeave?'<span class="pill leave" style="margin-left:0">👋 Hört auf am</span>'
+        :esc(a.type);
+      const dateDesc=isJoin?'Erster Tag: '+de(a.from)
+        :isLeave?'Letzter Arbeitstag: '+de(a.from)
+        :de(a.from)+' – '+de(a.to);
+      return`<div class="card row">
+        <div style="flex:1"><b>${esc(nm(emp(a.emp)))}</b> · ${badge}<br><small>${dateDesc}</small></div>
+        <button class=sm onclick="S.abs.splice(${i},1);sv();render()">Löschen</button>
+      </div>`;
+    }).join('')||'<small>Noch keine Abwesenheiten oder Ein-/Austritte eingetragen</small>'}`;
+}
+
+function absAdd(){
+  const a=$('#af').value,eId=+$('#ae').value,type=$('#at').value;
+  const isSingle=type==='Eintritt'||type==='Austritt';
+  const b=isSingle?a:($('#aT')?$('#aT').value:a);
+  if(!a||!b||b<a||!eId){toast('Bitte gültigen Zeitraum wählen');return;}
+
+  // Validate Eintritt <= Austritt for same employee
+  if(type==='Eintritt'){
+    const en=empEnd(eId);
+    if(en&&a>en){toast('Eintritt ('+de(a)+') liegt nach dem Austritt ('+de(en)+')');return;}
+    S.abs=S.abs.filter(x=>!(x.emp==eId&&x.type==='Eintritt'));
+  }else if(type==='Austritt'){
+    const st=empStart(eId);
+    if(st&&a<st){toast('Austritt ('+de(a)+') liegt vor dem Eintritt ('+de(st)+')');return;}
+    S.abs=S.abs.filter(x=>!(x.emp==eId&&x.type==='Austritt'));
+  }
+
+  S.abs.push({emp:eId,type,from:a,to:b});
+  S.abs.sort((x,y)=>x.from<y.from?-1:1);
+
+  // Remove any already-planned shifts outside employment or during real absences (prevents ghost hours!)
+  let removed=0;
+  const affectedWks=[],lockedWks=[];
+  const trackRemoved=ds=>{
+    delete S.plan[ds][eId];
+    removed++;
+    const wkIso=weekKey(ds);
+    if(!affectedWks.includes(wkIso)){
+      affectedWks.push(wkIso);
+      if(isWeekLocked(wkIso))lockedWks.push(wkIso);
+    }
+  };
+
+  if(type==='Eintritt'){
+    Object.keys(S.plan).sort().forEach(ds=>{
+      if(ds<a&&S.plan[ds]&&S.plan[ds][eId])trackRemoved(ds);
+    });
+  }else if(type==='Austritt'){
+    Object.keys(S.plan).sort().forEach(ds=>{
+      if(ds>a&&S.plan[ds]&&S.plan[ds][eId])trackRemoved(ds);
+    });
+  }else if(type!=='Evt. Ausfall'){
+    let curD=P(a),endD=P(b);
+    while(curD<=endD){
+      const ds=iso(curD);
+      if(S.plan[ds]&&S.plan[ds][eId])trackRemoved(ds);
+      curD=add(curD,1);
+    }
+  }
+
+  sv();render();
+  if(removed>0){
+    const eName=nm(emp(eId));
+    const kwList=affectedWks.map(w=>'KW '+kw(add(P(w),3))).join(', ');
+    const lockWarn=lockedWks.length?`<div class="wn bad">🔒 <b>Achtung:</b> Betrifft fixierte Woche(n) (${lockedWks.map(w=>'KW '+kw(add(P(w),3))).join(', ')}) – bitte Ersatz suchen und ggf. neu drucken!</div>`:'';
+    const ttl=type==='Eintritt'?'Eintritt eingetragen':type==='Austritt'?'Austritt eingetragen':'Abwesenheit eingetragen';
+    show(`<h3>${ttl}</h3>
+      <p>Für <b>${esc(eName)}</b> wurden <b>${removed} bestehende Schicht(en)</b> in ${kwList} automatisch entfernt, damit keine Geisterstunden mitgezählt werden.</p>
+      ${lockWarn}
+      <div class=row>
+        <button class=btn onclick="jumpWeek('${affectedWks[0]}')">Zu KW ${kw(add(P(affectedWks[0]),3))} springen</button>
+        <button class="btn sec" onclick="hide()">OK</button>
+      </div>`);
+  }else{
+    const msg=type==='Evt. Ausfall'?'Evt. Ausfall für Plan B eingetragen'
+      :type==='Eintritt'?'🆕 Eintritt ab '+de(a)+' gespeichert'
+      :type==='Austritt'?'👋 Austritt am '+de(a)+' gespeichert'
+      :'Abwesenheit eingetragen';
+    toast(msg);
+  }
+}
+
+/* Settings & iOS Safari Backup */
+function setV(){
+  const y=wk.getFullYear();
+  const holList=Object.entries(hol(y)).sort((a,b)=>a[0]<b[0]?-1:1);
+  return`<h2>Einstellungen</h2>
+    <div class=card>
+      <div class=l>Anzeige & Format</div>
+      <div class=row style="justify-content:space-between;align-items:flex-start">
+        <div>
+          <small style="display:block;margin-bottom:4px">Namen anzeigen als</small>
+          <div class=chips>
+            <button class="chip ${S.names=='k'?'on':''}" onclick="S.names='k';sv();render()">Kürzel</button>
+            <button class="chip ${S.names=='n'?'on':''}" onclick="S.names='n';sv();render()">Klarnamen</button>
+          </div>
+        </div>
+        <div>
+          <small style="display:block;margin-bottom:4px">Soll- & Stundenformat</small>
+          <div class=chips>
+            <button class="chip ${S.timeFmt!=='dec'?'on':''}" onclick="S.timeFmt='hm';sv();render()">Uhrzeit (Std:Min)</button>
+            <button class="chip ${S.timeFmt==='dec'?'on':''}" onclick="S.timeFmt='dec';sv();render()">Dezimal (7,5 h)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class=card>
+      <label>Filiale<input value="${esc(S.store)}" oninput="S.store=this.value;sv()"></label>
+      <div class=l>Öffnungszeiten</div>
+      <label class=ck style="margin:6px 0 8px"><input type=checkbox ${editHrs?'checked':''} onchange="editHrs=this.checked;render()"> Öffnungszeiten bearbeiten freischalten</label>
+      <div class="${editHrs?'':'locked-area'}">
+        ${DN.map((d,i)=>{const h=S.hrs[i];return`<div class=row>
+          <b style="width:28px">${d}</b>
+          <label class=ck style="margin:0"><input type=checkbox ${h?'checked':''} ${editHrs?'':'disabled'} onchange="S.hrs[${i}]=this.checked?[...DEF_HRS[${i}]]:null;sv();render()">offen</label>
+          ${h?`<input type=time ${editHrs?'':'disabled'} value=${h2t(h[0])} onchange="S.hrs[${i}][0]=t2h(this.value);sv()"> – <input type=time ${editHrs?'':'disabled'} value=${h2t(h[1])} onchange="S.hrs[${i}][1]=t2h(this.value);sv()">`:'<small>geschlossen</small>'}
+        </div>`}).join('')}
+        <label>Heiligabend und Silvester geöffnet bis (Uhr)<input type=number ${editHrs?'':'disabled'} value=${S.eve} oninput="S.eve=+this.value||14;sv()"></label>
+      </div>
+      <details style="margin-top:8px"><summary style="cursor:pointer;font-size:14px;font-weight:600">Gesetzliche Feiertage RLP ${y} (${holList.length} · dynamisch für alle Jahre)</summary>
+        <div style="margin-top:6px;font-size:13px;color:var(--mut)">${holList.map(([d,n])=>`${de(d)} – ${n}`).join('<br>')}</div>
+      </details>
+    </div>
+
+    <div class=card>
+      <div class=l>📦 Standard-Warentage (Liefertage)</div>
+      <small style="display:block;margin-bottom:6px">Erhalten ein „X“ auf dem MEP-Ausdruck und können im Plan-Tab pro Datum einzeln an-/ausgeschaltet werden.</small>
+      <div class=chips>
+        ${DN.slice(0,6).map((d,i)=>`<button class="chip ${(S.wareDays||[]).includes(i)?'on':''}" onclick="S.wareDays=(S.wareDays||[]).includes(${i})?S.wareDays.filter(x=>x!=${i}):[...(S.wareDays||[]),${i}].sort((a,b)=>a-b);sv();render()">${d}</button>`).join('')}
+      </div>
+      <label style="margin-top:8px">Zusätzliche Früh-Personen am Warentag<input type=number min=0 max=4 value="${S.wareExtraF??1}" oninput="S.wareExtraF=Math.max(0,+this.value||0);sv()"></label>
+    </div>
+
+    <div class=card>
+      <div class=l>Planungsregeln & Stundenkonto</div>
+      <small style="display:block;margin-bottom:6px">Hinweis: Änderungen an Lohn, Pause, Teiler oder Soll berechnen alle Summen live neu; bestehende Schichten bleiben unverändert.</small>
+      <label>Pause bei Schichten über 6 Std. (Minuten)<input type=number value=${S.pause} oninput="S.pause=+this.value||0;sv()"></label>
+      <div class=row>
+        <label style="flex:1">Früh-Besetzung<input type=number value=${S.nF} oninput="S.nF=+this.value||0;sv()"></label>
+        <label style="flex:1">Spät-Besetzung<input type=number value=${S.nS} oninput="S.nS=+this.value||0;sv()"></label>
+        <label style="flex:1">Kurztag (Pers.)<input type=number value=${S.nK} oninput="S.nK=+this.value||0;sv()"></label>
+      </div>
+      <div class=row>
+        <label style="flex:1">Max. Samstage / Monat<input type=number min=0 max=5 value=${S.satMax} oninput="S.satMax=Math.max(0,Math.min(5,Math.floor(+this.value||0)));sv()" onchange="render()"></label>
+        <label style="flex:1">Minijob-Grenze (€/Monat)<input type=number value=${S.cap} oninput="S.cap=+this.value||0;sv()"></label>
+      </div>
+      <label style="margin-top:10px">Härte der Samstags-Regel (5 Stufen)
+        <select onchange="S.satStrict=+this.value;S.satHard=S.satStrict>=5?1:0;sv();render()">
+          ${SAT_LEVELS.map(([v,lbl])=>`<option value="${v}" ${satLvl()===v?'selected':''}>${lbl}</option>`).join('')}
+        </select>
+      </label>
+      <small style="display:block;margin-top:-2px">${(SAT_LEVELS.find(x=>x[0]===satLvl())||SAT_LEVELS[2])[2]} Einzelne Mitarbeiter können im Tab „Team“ ein eigenes Limit erhalten.</small>
+
+      <div class=l style="margin-top:12px">Abwesenheits-Gutschrift & Teiler</div>
+      <label class=ck><input type=checkbox ${S.absCredit?'checked':''} onchange="S.absCredit=this.checked?1:0;sv();render()"> Urlaub, Krankheit, Schule & Feiertag anteilig anrechnen</label>
+      <div class=chips style="margin:6px 0">
+        <button class="chip ${S.absDiv!==6?'on':''}" onclick="S.absDiv=5;sv();render()">Teiler 5 Tage (Mo–Fr)</button>
+        <button class="chip ${S.absDiv===6?'on':''}" onclick="S.absDiv=6;sv();render()">Teiler 6 Tage (Mo–Sa)</button>
+      </div>
+      <label class=ck><input type=checkbox ${S.creditInMEP?'checked':''} onchange="S.creditInMEP=this.checked?1:0;sv()"> Gutschrift in MEP-Summen (Woche & Monat) einrechnen</label>
+
+      <div class=l style="margin-top:12px">Wochen- & Monats-Generator</div>
+      <label class=ck><input type=checkbox ${S.protectNeighbor?'checked':''} onchange="S.protectNeighbor=this.checked?1:0;sv()"> Tage aus Nachbarmonaten beim Monats-Generator schützen</label>
+      <label class=ck><input type=checkbox ${S.keepPrevAll?'checked':''} onchange="S.keepPrevAll=this.checked?1:0;sv()"> Generell Vorwoche beim Planen beibehalten (nur Ausfälle/Lücken füllen)</label>
+
+      <div class=l style="margin-top:14px">GFB / Minijob-Einsatz (Standard)</div>
+      <div class=chips>
+        ${[['short','Kurzschichten (2–3×)'],['full','Ganzer Tag (1×)'],['auto','Flexibel (Mix)']].map(([k,lbl])=>
+          `<button class="chip ${S.gfbMode===k?'on':''}" onclick="S.gfbMode='${k}';sv();render()">${lbl}</button>`
+        ).join('')}
+      </div>
+      <small style="display:block;margin-top:5px">Kann zusätzlich pro GFB einzeln im Tab „Team“ überschrieben werden.</small>
+      <div class=row style="margin-top:6px">
+        <label style="flex:1">Verstärkung Mo–Fr bevorzugt ab<input type=time value="${h2t(S.gfbFrom??15)}" onchange="S.gfbFrom=t2h(this.value);sv()"></label>
+        <label style="flex:1">Verstärkung Sa bevorzugt ab<input type=time value="${h2t(S.gfbSatFrom??11)}" onchange="S.gfbSatFrom=t2h(this.value);sv()"></label>
+      </div>
+    </div>
+
+    <div class=card>
+      <div class=l>📲 App auf Handy speichern & Backup</div>
+      <small>Speichere die Web-App selbst als Datei auf deinem Handy (z. B. nach Erhalt über WhatsApp) oder sichere deine Daten regelmäßig gegen Safari-Datenlöschung.</small>
+      <div class=row style="margin-top:8px">
+        <button class=btn onclick="openSaveApp()">📲 App auf Handy speichern</button>
+        <button class="btn sec" onclick="backup()">💾 Nur Daten-Backup (.json)</button>
+      </div>
+      ${readEmbeddedSeed()?`<button class="btn sec" style="padding:10px;font-size:14.5px" onclick="askLoadEmbeddedSeed()">📥 Eingebetteten Stand aus dieser App-Datei laden</button>`:''}
+      <label>Backup-Datei laden (.json / .txt)<input type=file accept=".json,.txt,application/json,text/plain" onchange="rf(this)"></label>
+      <textarea id=bk placeholder="Oder Backup-Text hier einfügen…"></textarea>
+      <div class=row>
+        <button class="btn sec" onclick="restoreText()">Text wiederherstellen</button>
+        <button class="btn danger" onclick="askReset()">Beispieldaten</button>
+      </div>
+    </div>`;
+}
+
+function buildAppHtml(includeData){
+  const clone=document.documentElement.cloneNode(true);
+  ['app','pr','m','toast'].forEach(id=>{
+    const el=clone.querySelector('#'+id);
+    if(el){el.innerHTML='';el.classList.remove('on');}
+  });
+  const oldSeed=clone.querySelector('#mep-seed');
+  if(oldSeed)oldSeed.remove();
+  if(includeData){
+    const sc=document.createElement('script');
+    sc.id='mep-seed';
+    sc.type='application/json';
+    sc.textContent=JSON.stringify(S).split('<').join('\\u003c');
+    const body=clone.querySelector('body');
+    const mainScript=body&&body.querySelector('script');
+    if(body&&mainScript)body.insertBefore(sc,mainScript);
+    else if(body)body.appendChild(sc);
+  }
+  return'<!DOCTYPE html>\n'+clone.outerHTML;
+}
+
+function openSaveApp(){
+  const canFileShare=!!(navigator.share&&navigator.canShare);
+  const storeTag=S.store?(' · Filiale '+esc(S.store)):'';
+  show(`<h3>📲 Web-App auf Handy speichern</h3>
+    <p style="margin:4px 0 8px">Erzeugt eine fertige <b>.html</b>-Datei des Einsatzplaners${storeTag}, die du dauerhaft auf dem Handy ablegen oder direkt weiterleiten kannst.</p>
+    <label class=ck style="margin:8px 0 10px"><input type=checkbox ${appSaveInclude?'checked':''} onchange="appSaveInclude=this.checked;openSaveApp()"> Aktuelles Team, Regeln & Pläne in die App-Datei einbetten</label>
+    <small style="display:block;margin:-4px 0 10px">${appSaveInclude?'Ideal für dein eigenes Handy oder um die fertig eingerichtete App per WhatsApp an die Teamleitung zu schicken.':'Speichert nur das leere Programm ohne deine Mitarbeiter und Pläne.'}</small>
+    <button class=btn onclick="saveAppFile(appSaveInclude,'download')">⬇️ Auf Handy speichern (Downloads)</button>
+    ${canFileShare?`<button class="btn sec" onclick="saveAppFile(appSaveInclude,'share')">📤 Teilen / In Dateien sichern / WhatsApp</button>`:''}
+    <details style="margin-top:10px"><summary style="cursor:pointer;font-size:13.5px;font-weight:600">Hilfe für iPhone & Android</summary>
+      <div style="margin-top:6px;font-size:13px;color:var(--mut);line-height:1.45">
+        <b>Android (Chrome):</b> „Auf Handy speichern“ legt die Datei in <i>Downloads</i> ab. Dort antippen → in Chrome öffnen → optional als Lesezeichen speichern.<br>
+        <b>iPhone / iPad (WhatsApp):</b> Falls Tasten in der WhatsApp-Vorschau nicht reagieren, erst im WhatsApp-Fenster auf <b>Teilen (↑) → „In Dateien sichern“</b> tippen und die Datei danach aus der <i>Dateien</i>-App öffnen. Ein Home-Bildschirm-Icon geht auf iOS nur über einen Web-Link (https).
+      </div>
+    </details>
+    <button class="btn sec" style="margin-top:10px" onclick="hide()">Schließen</button>`);
+}
+
+async function saveAppFile(includeData,mode){
+  const html=buildAppHtml(includeData);
+  const tag=S.store?('-'+String(S.store).replace(/[^a-zA-Z0-9_-]/g,'')):'';
+  const fname='MEP-Einsatzplaner'+tag+(includeData?'':'-leer')+'.html';
+  if(mode==='share'){
+    try{
+      const file=new File([html],fname,{type:'text/html'});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:'MEP Einsatzplaner'});
+        dismissTempHint(true);hide();toast('App-Datei geteilt / gesichert');return;
+      }
+    }catch(e){
+      if(e&&e.name==='AbortError')return;
+    }
+  }
+  try{
+    const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=fname;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+    dismissTempHint(true);hide();toast('App-Datei gespeichert: '+fname);return;
+  }catch(e){}
+  toast('Download in dieser Vorschau blockiert – bitte Teilen-Menü nutzen');
+}
+
+function askLoadEmbeddedSeed(){
+  const seed=readEmbeddedSeed();
+  if(!seed){toast('Kein eingebetteter Stand vorhanden');return;}
+  show(`<h3>Eingebetteten Stand laden?</h3>
+    <p>Überschreibt deinen aktuellen Browser-Stand mit den in dieser App-Datei eingebetteten Daten (<b>${seed.emps.length} Mitarbeiter</b>${seed.store?', Filiale '+esc(seed.store):''}).</p>
+    <div class=row>
+      <button class=btn onclick="const sd=readEmbeddedSeed();if(sd){S=sd;sv();hide();toast('Eingebetteter Stand geladen');}">Ja, laden</button>
+      <button class="btn sec" onclick="hide()">Abbrechen</button>
+    </div>`);
+}
+
+async function backup(){
+  S.bk=iso(new Date());sv();
+  const data=JSON.stringify(S,null,2);
+  const fname='einsatzplaner-backup-'+S.bk+'.json';
+  // Try iOS Share Sheet with File first (ideal for "In Dateien sichern" on iPhone/iPad)
+  try{
+    const file=new File([data],fname,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:'MEP Einsatzplaner Backup'});
+      render();toast('Backup geteilt / gesichert');return;
+    }
+  }catch(e){if(e&&e.name==='AbortError'){render();return;}}
+  // Standard browser file download (works in iOS Safari 13+ and Desktop)
+  try{
+    const blob=new Blob([data],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=fname;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),4000);
+    render();toast('Backup-Datei heruntergeladen');return;
+  }catch(e){}
+  // Fallback copy modal
+  render();
+  showCopyModal('Backup sichern',data);
+}
+function rf(inp){
+  const file=inp.files&&inp.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{S=normalizeState(JSON.parse(r.result));sv();render();toast('Backup erfolgreich wiederhergestellt');}
+    catch(e){toast('Backup-Datei ungültig');}
+  };
+  r.readAsText(file);
+}
+function restoreText(){
+  try{S=normalizeState(JSON.parse($('#bk').value));sv();render();toast('Backup wiederhergestellt');}
+  catch(e){toast('Backup-Text ungültig');}
+}
+function askReset(){
+  show(`<h3>Auf Beispieldaten zurücksetzen?</h3>
+    <p>Alle aktuellen Mitarbeiter, Regeln und Pläne werden überschrieben.</p>
+    <div class=row>
+      <button class=btn onclick="S=demo();sv();hide();toast('Zurückgesetzt')">Ja, zurücksetzen</button>
+      <button class="btn sec" onclick="hide()">Abbrechen</button>
+    </div>`);
+}
+
+function show(h){$('#m').innerHTML='<div class=box>'+h+'</div>';$('#m').classList.add('on')}
+function hide(){$('#m').classList.remove('on');render()}
+function render(){
+  $('#app').innerHTML={plan:planV,team:teamV,abs:absV,set:setV}[view]();
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v==view));
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{view=b.dataset.v;render()});
+render();
+</script>
+</body>
+</html>
